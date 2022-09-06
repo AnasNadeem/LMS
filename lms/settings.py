@@ -18,7 +18,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -28,9 +27,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # App
+    # Third Party Apps
+    'phonenumber_field',
+    # Our Apps
     'leads',
 ]
+
+AUTH_USER_MODEL = 'leads.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
