@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserM
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.utils import timezone
+
+from autoslug import AutoSlugField
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -45,11 +47,50 @@ class User(AbstractBaseUser, PermissionsMixin):
     #     send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
-# class Account(TimeBaseModel):
-#     users = models.ManyToManyField(User, blank=True)
-#     name = models.CharField(max_length=150)
-#     business_desc = models.JSONField()
-#     is_active = models.BooleanField(default=True)
+class Account(TimeBaseModel):
+    name = models.CharField(max_length=150)
+    business_desc = models.JSONField()
+    users = models.ManyToManyField(User, blank=True)
+    is_active = models.BooleanField(default=True)
 
-#     def __str__(self):
-#         return self.name
+    def __str__(self):
+        return self.name
+
+
+class LeadAttribute(TimeBaseModel):
+    LEAD_CHOICES = (
+        ('main', 'Main Lead'),
+        ('track', 'Track Lead'),
+        ('post', 'Post Lead'),
+    )
+
+    ATTRIBUTE_CHOICES = (
+        ('string', 'String'),
+        ('integer', 'Integer'),
+        ('phone_number', 'Phone Number'),
+        ('choices', 'Choices'),
+    )
+
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    lead_type = models.CharField(max_length=10, choices=LEAD_CHOICES)
+    name = models.CharField(max_length=250)
+    slug = AutoSlugField(populate_from='name', unique_with=('account', 'lead_type'))
+    attribute_type = models.CharField(max_length=50, choices=ATTRIBUTE_CHOICES)
+    value = models.JSONField()
+    seq_no = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.name} {self.lead_type}"
+
+
+class Lead(TimeBaseModel):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    data = models.JSONField()
+
+
+class LeadUserMap(TimeBaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    leads = models.ManyToManyField(Lead, null=True, blank=True)
+
+    def __str__(self):
+        return self.user.get_full_name
