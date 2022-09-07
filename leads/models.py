@@ -49,7 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Account(TimeBaseModel):
     name = models.CharField(max_length=150)
-    business_desc = models.JSONField()
+    business_desc = models.JSONField(default=dict, null=True, blank=True)
     users = models.ManyToManyField(User, blank=True)
     is_active = models.BooleanField(default=True)
 
@@ -76,7 +76,7 @@ class LeadAttribute(TimeBaseModel):
     name = models.CharField(max_length=250)
     slug = AutoSlugField(populate_from='name', unique_with=('account', 'lead_type'))
     attribute_type = models.CharField(max_length=50, choices=ATTRIBUTE_CHOICES)
-    value = models.JSONField()
+    value = models.JSONField(default=dict, null=True, blank=True)
     seq_no = models.PositiveIntegerField()
 
     def __str__(self):
@@ -90,7 +90,7 @@ class Lead(TimeBaseModel):
 
 class LeadUserMap(TimeBaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    leads = models.ManyToManyField(Lead, null=True, blank=True)
+    leads = models.ManyToManyField(Lead, blank=True)
 
     def __str__(self):
         return self.user.get_full_name
