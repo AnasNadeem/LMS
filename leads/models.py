@@ -1,10 +1,13 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import models
 from django.utils import timezone
 
 from autoslug import AutoSlugField
 from phonenumber_field.modelfields import PhoneNumberField
+import phonenumbers
 
 
 class TimeBaseModel(models.Model):
@@ -65,10 +68,11 @@ class LeadAttribute(TimeBaseModel):
     )
 
     ATTRIBUTE_CHOICES = (
-        ('string', 'String'),
+        ('choices', 'Choices'),
+        ('email', 'Email'),
         ('integer', 'Integer'),
         ('phone_number', 'Phone Number'),
-        ('choices', 'Choices'),
+        ('string', 'String'),
     )
 
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -85,7 +89,53 @@ class LeadAttribute(TimeBaseModel):
 
 class Lead(TimeBaseModel):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    data = models.JSONField()
+    data = models.JSONField(default=dict(main={}, track={}, post={}), null=True, blank=True)
+
+    def clean(self):
+        super().clean()
+        data = self.data
+        if len(data.keys()) != 3:
+            raise ValidationError("Invalid json data for 'data' field.")
+
+        lead_choices = [LeadAttribute.LEAD_CHOICES.main,
+                        LeadAttribute.LEAD_CHOICES.track,
+                        LeadAttribute.LEAD_CHOICES.post]
+        for data_lead_choice in data.keys():
+            if data_lead_choice not in lead_choices:
+                raise ValidationError(f"'{data_lead_choice}' is not a valid lead choice.")
+
+        all_lead_attributes = self.account.leadattribute_set.all()
+        for lead_type, lead_data in data.items():
+            lead_attributes = all_lead_attributes.filter(lead_type=lead_type)
+            self.clean_lead_data(lead_type, lead_data, lead_attributes)
+
+    def clean_lead_data(self, lead_type, lead_data, lead_attributes):
+        for lead_attr, lead_value in lead_data.items():
+            lead_attribute = lead_attributes.filter(slug=lead_attr).first()
+            if not lead_attribute:
+                raise ValidationError(f"Invalid lead attribute '{lead_attr}' for lead type '{lead_type}'.")
+
+            # Email Validation
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.email:
+                try:
+                    validate_email(lead_value)
+                except Exception as e:
+                    e.message = f"Invalid email '{lead_value}' for field {lead_attribute.name}."
+                    raise ValidationError(e.message)
+            # String Validation
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.string:
+                if not isinstance(lead_value, str):
+                    raise ValidationError(f"Invalid string '{lead_value}' for field {lead_attribute.name}.")
+            # Integer Validation
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.integer:
+                if not isinstance(lead_value, int):
+                    raise ValidationError(f"Invalid integer '{lead_value}' for field {lead_attribute.name}.")
+            # Phone Number Validation
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.phone_number:
+                phone_num = phonenumbers.parse(lead_value)
+                if not phonenumbers.is_valid_number(phone_num):
+                    raise ValidationError(f"Invalid phone number '{lead_value}' for field {lead_attribute.name}")
+            # Choices Validation
 
 
 class LeadUserMap(TimeBaseModel):
