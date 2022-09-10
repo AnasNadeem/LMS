@@ -5,9 +5,10 @@ from django.core.validators import validate_email
 from django.db import models
 from django.utils import timezone
 
-from autoslug import AutoSlugField
-from phonenumber_field.modelfields import PhoneNumberField
 import phonenumbers
+from autoslug import AutoSlugField
+from model_utils import Choices
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class TimeBaseModel(models.Model):
@@ -26,9 +27,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=150, blank=True)
     email = models.EmailField()
     phone_number = PhoneNumberField(null=False, blank=False, unique=True)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
 
     objects = UserManager()
@@ -53,21 +51,41 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Account(TimeBaseModel):
     name = models.CharField(max_length=150)
     business_desc = models.JSONField(default=dict, null=True, blank=True)
-    users = models.ManyToManyField(User, blank=True)
+    # users = models.ManyToManyField(User, blank=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
 
+class AccountUser(TimeBaseModel):
+    USER_ROLE = Choices(
+        ('admin', 'Is Admin'),
+        ('staff', 'Is Staff'),
+    )
+
+    JOINED_STATUS = Choices(
+        ('pending', 'Pending'),
+        ('joined', 'Joined'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    role = models.CharField(max_length=50, choices=USER_ROLE, default=USER_ROLE.staff)
+    status = models.CharField(max_length=50, choices=JOINED_STATUS, default=JOINED_STATUS.pending)
+
+    def __str__(self):
+        return f"{self.user.email} for {self.account.name}"
+
+
 class LeadAttribute(TimeBaseModel):
-    LEAD_CHOICES = (
+    LEAD_CHOICES = Choices(
         ('main', 'Main Lead'),
         ('track', 'Track Lead'),
         ('post', 'Post Lead'),
     )
 
-    ATTRIBUTE_CHOICES = (
+    ATTRIBUTE_CHOICES = Choices(
         ('choices', 'Choices'),
         ('email', 'Email'),
         ('integer', 'Integer'),
