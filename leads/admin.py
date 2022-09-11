@@ -1,5 +1,6 @@
 from django.contrib import admin
-from leads.models import User, Account, AccountUser, LeadAttribute, Lead, LeadUserMap
+from leads.models_user import User, Account, AccountUser
+from leads.models_lead import LeadAttribute, Lead, LeadUserMap
 # Register your models here.
 
 
@@ -8,9 +9,9 @@ class TimeBaseModelAdmin(admin.ModelAdmin):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("username", "email", "first_name",
+    list_display = ("email", "first_name",
                     "phone_number",)
-    search_fields = ["username", "email", "phone_number", "first_name", "last_name"]
+    search_fields = ["email", "phone_number", "first_name", "last_name"]
 
 
 class AccountAdmin(TimeBaseModelAdmin):

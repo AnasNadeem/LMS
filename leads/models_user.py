@@ -1,0 +1,65 @@
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db import models
+from django.utils import timezone
+
+from model_utils import Choices
+from phonenumber_field.modelfields import PhoneNumberField
+from leads.models_base import TimeBaseModel
+from leads.models_manager import UserManager
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    email = models.EmailField(unique=True, blank=False)
+    phone_number = PhoneNumberField(null=True, blank=True, unique=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(default=timezone.now)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+
+    def clean(self):
+        super().clean()
+        self.email = self.__class__.objects.normalize_email(self.email)
+
+    def get_full_name(self):
+        full_name = f"{self.first_name} {self.last_name}"
+        return full_name.strip()
+
+    # def email_user(self, subject, message, from_email=None, **kwargs):
+    #     """Send an email to this user."""
+    #     send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class Account(TimeBaseModel):
+    name = models.CharField(max_length=150)
+    business_desc = models.JSONField(default=dict, null=True, blank=True)
+    # users = models.ManyToManyField(User, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+
+class AccountUser(TimeBaseModel):
+    USER_ROLE = Choices(
+        ('admin', 'Is Admin'),
+        ('staff', 'Is Staff'),
+    )
+
+    JOINED_STATUS = Choices(
+        ('pending', 'Pending'),
+        ('joined', 'Joined'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    role = models.CharField(max_length=50, choices=USER_ROLE, default=USER_ROLE.staff)
+    status = models.CharField(max_length=50, choices=JOINED_STATUS, default=JOINED_STATUS.pending)
+
+    def __str__(self):
+        return f"{self.user.email} for {self.account.name}"

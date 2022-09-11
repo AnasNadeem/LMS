@@ -1,5 +1,5 @@
 import jwt
-from leads.models import User
+from leads.models_user import User
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 from django.conf import settings
 from rest_framework import exceptions
@@ -19,7 +19,7 @@ class JWTAuthentication(BaseAuthentication):
 
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
-            user = User.objects.get(username=payload['username'])
+            user = User.objects.get(email=payload['email'])
             return (user, token)
 
         except jwt.ExpiredSignatureError as ex:
