@@ -1,6 +1,6 @@
 import phonenumbers
 from autoslug import AutoSlugField
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import models
 from model_utils import Choices

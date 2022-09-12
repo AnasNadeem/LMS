@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from rest_framework.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -36,6 +37,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class Account(TimeBaseModel):
+    BUSINESS_CATEGORY = Choices(
+        ('it', 'IT'),
+        ('other', 'Other'),
+    )
     name = models.CharField(max_length=150)
     business_desc = models.JSONField(default=dict, null=True, blank=True)
     # users = models.ManyToManyField(User, blank=True)
@@ -43,6 +48,19 @@ class Account(TimeBaseModel):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        business_desc = self.business_desc
+        for category, desc in business_desc.items():
+            if category not in self.BUSINESS_CATEGORY:
+                raise ValidationError('Not a valid category')
+            if not isinstance(desc, str):
+                raise ValidationError('Invalid business description')
 
 
 class AccountUser(TimeBaseModel):

@@ -1,4 +1,4 @@
-from leads.models_user import User
+from leads.models_user import Account, AccountUser, User
 from rest_framework import serializers
 
 
@@ -32,3 +32,29 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+
+class AccountwithAccountUserSerializer(serializers.ModelSerializer):
+    account_users = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Account
+        fields = (
+            'id',
+            'name',
+            'business_desc',
+            'account_users',
+        )
+
+    def get_account_users(self, obj):
+        account = Account.objects.get(pk=obj.id)
+        account_users = account.accountuser_set.all()
+        account_users_serializer = AccountUserSerializer(account_users, many=True)
+        return account_users_serializer.data
+
+
+class AccountUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AccountUser
+        fields = '__all__'
