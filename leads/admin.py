@@ -1,5 +1,5 @@
 from django.contrib import admin
-from leads.models_user import User, Account, AccountUser
+from leads.models_user import User, Account, AccountUser, UserOTP
 from leads.models_lead import LeadAttribute, Lead, LeadUserMap
 # Register your models here.
 
@@ -24,6 +24,11 @@ class AccountUserAdmin(TimeBaseModelAdmin):
     list_filter = ("status", "role", "account")
 
 
+class UserOTPAdmin(TimeBaseModelAdmin):
+    list_display = ("user", "otp", "is_verified",) + TimeBaseModelAdmin.list_display
+    list_filter = ("is_verified",)
+
+
 class LeadAttributeAdmin(TimeBaseModelAdmin):
     list_display = ("name", "slug", "account", "lead_type",
                     "attribute_type", "seq_no",) + TimeBaseModelAdmin.list_display
@@ -37,13 +42,13 @@ class LeadAdmin(TimeBaseModelAdmin):
 
 
 class LeadUserMapAdmin(TimeBaseModelAdmin):
-    list_display = ("id", "user",) + TimeBaseModelAdmin.list_display
-    list_filter = ("user",)
+    list_display = ("id", "accountuser") + TimeBaseModelAdmin.list_display
 
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Account, AccountAdmin)
 admin.site.register(AccountUser, AccountUserAdmin)
+admin.site.register(UserOTP, UserOTPAdmin)
 admin.site.register(LeadAttribute, LeadAttributeAdmin)
 admin.site.register(Lead, LeadAdmin)
 admin.site.register(LeadUserMap, LeadUserMapAdmin)

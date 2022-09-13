@@ -72,6 +72,7 @@ class AccountUser(TimeBaseModel):
     JOINED_STATUS = Choices(
         ('pending', 'Pending'),
         ('joined', 'Joined'),
+        ('removed', 'Removed'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -81,3 +82,12 @@ class AccountUser(TimeBaseModel):
 
     def __str__(self):
         return f"{self.user.email} for {self.account.name}"
+
+
+class UserOTP(TimeBaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.get_full_name
