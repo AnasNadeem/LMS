@@ -38,7 +38,7 @@ AUTH_USER_MODEL = 'leads.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'leads.jwtbackend.JWTAuthentication',
+        'utils.jwtauth.JWTAuthentication',
     ),
     # 'DEFAULT_FILTER_BACKENDS': (
     #     'django_filters.rest_framework.DjangoFilterBackend',

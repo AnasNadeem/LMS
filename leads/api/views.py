@@ -1,9 +1,12 @@
 import jwt
+
 from django.conf import settings
+
 from rest_framework import response, status, views
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import IsAuthenticated
 
+from utils.permissions import IsAuthenticated
+from utils.helper_functions import send_or_verify_otp
 from .serializers import (AccountwithAccountUserSerializer,
                           RegisterSerializer,
                           UserSerializer,
@@ -36,14 +39,8 @@ class LoginApiView(views.APIView):
         if not authenticated:
             return response.Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        auth_token = jwt.encode(
-            {'email': user.email},
-            settings.SECRET_KEY,
-            algorithm='HS256'
-        )
-        user_serializer_data = UserSerializer(user).data
-        data = {'user': user_serializer_data, 'token': auth_token}
-        return response.Response(data, status=status.HTTP_200_OK)
+        resp_data, resp_status = send_or_verify_otp(user)
+        return response.Response(resp_data, status=resp_status)
 
 
 class LoginApiByTokenView(GenericAPIView):
@@ -81,3 +78,23 @@ class PrepareAccountView(GenericAPIView):
         account_user.save()
 
         return response.Response(account_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class VerifyOTPView(GenericAPIView):
+
+    def post(self, request):
+        data = request.data
+        email = data.get('email', '')
+        if not email:
+            return response.Response({'error': 'Email cannot be blank.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return response.Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        otp = data.get('otp', '')
+        if not otp:
+            return response.Response({'error': 'OTP cannot be blank.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        resp_data, resp_status = send_or_verify_otp(user, otp)
+        return response.Response(resp_data, status=resp_status)

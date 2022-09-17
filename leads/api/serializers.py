@@ -1,4 +1,5 @@
-from leads.models_user import Account, AccountUser, User
+from django.utils.crypto import get_random_string
+from leads.models_user import Account, AccountUser, User, UserOTP
 from rest_framework import serializers
 
 
@@ -22,7 +23,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'first_name', 'last_name', 'password')
+        fields = ('email', 'password')
 
     def validate(self, attrs):
         email = attrs.get('email', '')
@@ -31,7 +32,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         return super().validate(attrs)
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
+        user = User.objects.create_user(**validated_data)
+
+        random_str = get_random_string(6)
+        userotp = UserOTP()
+        userotp.user = user
+        userotp.otp = random_str
+        userotp.save()
+
+        return user
 
 
 class AccountwithAccountUserSerializer(serializers.ModelSerializer):

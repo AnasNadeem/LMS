@@ -9,9 +9,9 @@ class TimeBaseModelAdmin(admin.ModelAdmin):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("email", "first_name",
-                    "phone_number",)
+    list_display = ("email", "first_name", "phone_number", "is_active")
     search_fields = ["email", "phone_number", "first_name", "last_name"]
+    list_filter = ("is_active",)
 
 
 class AccountAdmin(TimeBaseModelAdmin):

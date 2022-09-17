@@ -19,7 +19,7 @@ class JWTAuthentication(BaseAuthentication):
 
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms='HS256')
-            user = User.objects.get(email=payload['email'])
+            user = User.objects.filter(email=payload['email']).first()
             return (user, token)
 
         except jwt.ExpiredSignatureError as ex:
