@@ -63,6 +63,7 @@ class AccountwithAccountUserSerializer(serializers.ModelSerializer):
 
 
 class AccountUserSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
 
     class Meta:
         model = AccountUser

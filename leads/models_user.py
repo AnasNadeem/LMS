@@ -3,6 +3,7 @@ from rest_framework.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
+from autoslug import AutoSlugField
 from model_utils import Choices
 from phonenumber_field.modelfields import PhoneNumberField
 from leads.models_base import TimeBaseModel
@@ -43,6 +44,7 @@ class Account(TimeBaseModel):
     )
     name = models.CharField(max_length=150)
     business_desc = models.JSONField(default=dict, null=True, blank=True)
+    subdomain = AutoSlugField(max_length=8, populate_from='name', unique=True)
     # users = models.ManyToManyField(User, blank=True)
     is_active = models.BooleanField(default=True)
 

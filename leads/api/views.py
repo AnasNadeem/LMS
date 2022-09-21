@@ -3,15 +3,17 @@ import jwt
 from django.conf import settings
 
 from rest_framework import response, status, views
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.viewsets import ModelViewSet
 
-from utils.permissions import IsAuthenticated
+from utils.permissions import IsAuthenticated, IsAccountAdmin
 from utils.helper_functions import send_or_verify_otp
-from .serializers import (AccountwithAccountUserSerializer,
+from .serializers import (AccountUserSerializer,
+                          AccountwithAccountUserSerializer,
                           RegisterSerializer,
                           UserSerializer,
                           )
-from leads.models_user import AccountUser, User
+from leads.models_user import Account, AccountUser, User
 
 
 class RegisterAPiView(GenericAPIView):
@@ -98,3 +100,15 @@ class VerifyOTPView(GenericAPIView):
 
         resp_data, resp_status = send_or_verify_otp(user, otp)
         return response.Response(resp_data, status=resp_status)
+
+
+class AccountView(ListAPIView):
+    queryset = Account.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = AccountwithAccountUserSerializer
+
+
+class AccountUserViewset(ModelViewSet):
+    queryset = AccountUser.objects.all()
+    serializer_class = AccountUserSerializer
+    permission_classes = (IsAccountAdmin,)
