@@ -8,12 +8,12 @@ from rest_framework.viewsets import ModelViewSet
 
 from utils.permissions import IsAuthenticated, IsAccountAdmin
 from utils.helper_functions import send_or_verify_otp
-from .serializers import (AccountUserSerializer,
-                          AccountwithAccountUserSerializer,
+from .serializers import (MemberSerializer,
+                          AccountwithMemberSerializer,
                           RegisterSerializer,
                           UserSerializer,
                           )
-from leads.models_user import Account, AccountUser, User
+from leads.models_user import Account, Member, User
 
 
 class RegisterAPiView(GenericAPIView):
@@ -63,7 +63,7 @@ class LoginApiByTokenView(GenericAPIView):
 
 class PrepareAccountView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = AccountwithAccountUserSerializer
+    serializer_class = AccountwithMemberSerializer
 
     def post(self, request):
         data = request.data
@@ -72,12 +72,12 @@ class PrepareAccountView(GenericAPIView):
             account_serializer.save()
 
         account_id = account_serializer.data.get('id')
-        account_user = AccountUser()
-        account_user.user = request.user
-        account_user.account_id = account_id
-        account_user.role = AccountUser.USER_ROLE.admin
-        account_user.status = AccountUser.JOINED_STATUS.joined
-        account_user.save()
+        member = Member()
+        member.user = request.user
+        member.account_id = account_id
+        member.role = Member.USER_ROLE.admin
+        member.status = Member.JOINED_STATUS.joined
+        member.save()
 
         return response.Response(account_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -105,10 +105,10 @@ class VerifyOTPView(GenericAPIView):
 class AccountView(ListAPIView):
     queryset = Account.objects.all()
     permission_classes = (IsAuthenticated,)
-    serializer_class = AccountwithAccountUserSerializer
+    serializer_class = AccountwithMemberSerializer
 
 
-class AccountUserViewset(ModelViewSet):
-    queryset = AccountUser.objects.all()
-    serializer_class = AccountUserSerializer
+class MemberViewset(ModelViewSet):
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer
     permission_classes = (IsAccountAdmin,)

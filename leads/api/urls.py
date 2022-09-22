@@ -6,14 +6,14 @@ from .views import (
     PrepareAccountView,
     VerifyOTPView,
     AccountView,
-    AccountUserViewset,
+    MemberViewset,
 )
 from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
 
 
 router = routers.SimpleRouter(trailing_slash=False)
-router.register(r"accountuser", AccountUserViewset, basename="account_user")
+router.register(r"member", MemberViewset, basename="member")
 
 urlpatterns = [
     # Authentication Urls

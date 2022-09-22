@@ -2,7 +2,7 @@ from django.contrib.sites.models import Site
 from django.db.models.query import Q
 from django.http import Http404
 
-from leads.models_user import Account, AccountUser
+from leads.models_user import Account, Member
 
 
 class SubdomainMiddleware(object):
@@ -16,18 +16,18 @@ class SubdomainMiddleware(object):
 
         request.account, request.subdomain = self.get_account_from_hostname(hostname)
         request.domain = self.domain
-        request.account_user = None
+        request.member = None
 
         if getattr(request, 'account', None) and (not (request.user.is_authenticated and request.user.is_active)):
             raise Http404(f"Invalid user {request.user.email}")
 
         if getattr(request, 'account', None) and request.user.is_authenticated:
-            request.account_user = (AccountUser.objects
-                                    .filter(account=request.account, user=request.user)
-                                    .filter(Q(status='pending') | Q(status='joined'))
-                                    .first()
-                                    )
-            if not getattr(request, 'account_user', None):
+            request.member = (Member.objects
+                              .filter(account=request.account, user=request.user)
+                              .filter(Q(status='pending') | Q(status='joined'))
+                              .first()
+                              )
+            if not getattr(request, 'member', None):
                 raise Http404(f"Account user {request.user.email} not found")
 
         response = self.get_response(request)

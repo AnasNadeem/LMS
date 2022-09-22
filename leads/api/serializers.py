@@ -1,5 +1,5 @@
 from django.utils.crypto import get_random_string
-from leads.models_user import Account, AccountUser, User, UserOTP
+from leads.models_user import Account, Member, User, UserOTP
 from rest_framework import serializers
 
 
@@ -43,8 +43,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
-class AccountwithAccountUserSerializer(serializers.ModelSerializer):
-    account_users = serializers.SerializerMethodField()
+class AccountwithMemberSerializer(serializers.ModelSerializer):
+    members = serializers.SerializerMethodField()
 
     class Meta:
         model = Account
@@ -52,19 +52,19 @@ class AccountwithAccountUserSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'business_desc',
-            'account_users',
+            'members',
         )
 
-    def get_account_users(self, obj):
+    def get_members(self, obj):
         account = Account.objects.get(pk=obj.id)
-        account_users = account.accountuser_set.all()
-        account_users_serializer = AccountUserSerializer(account_users, many=True)
-        return account_users_serializer.data
+        members = account.member_set.all()
+        members_serializer = MemberSerializer(members, many=True)
+        return members_serializer.data
 
 
-class AccountUserSerializer(serializers.ModelSerializer):
+class MemberSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:
-        model = AccountUser
+        model = Member
         fields = '__all__'

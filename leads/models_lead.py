@@ -5,7 +5,7 @@ from django.core.validators import validate_email
 from django.db import models
 from model_utils import Choices
 from leads.models_base import TimeBaseModel
-from leads.models_user import Account, AccountUser
+from leads.models_user import Account, Member
 
 
 class LeadAttribute(TimeBaseModel):
@@ -87,8 +87,8 @@ class Lead(TimeBaseModel):
 
 
 class LeadUserMap(TimeBaseModel):
-    accountuser = models.OneToOneField(AccountUser, on_delete=models.CASCADE)
+    member = models.OneToOneField(Member, on_delete=models.CASCADE)
     leads = models.ManyToManyField(Lead, blank=True)
 
     def __str__(self):
-        return f"{self.accountuser.account.name} {self.accountuser.user.get_full_name} {self.accountuser.role}"
+        return f"{self.member.account.name} {self.member.user.get_full_name} {self.member.role}"

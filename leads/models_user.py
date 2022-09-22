@@ -65,22 +65,16 @@ class Account(TimeBaseModel):
                 raise ValidationError('Invalid business description')
 
 
-class AccountUser(TimeBaseModel):
+class Member(TimeBaseModel):
     USER_ROLE = Choices(
         ('admin', 'Is Admin'),
         ('staff', 'Is Staff'),
     )
 
-    JOINED_STATUS = Choices(
-        ('pending', 'Pending'),
-        ('joined', 'Joined'),
-        ('removed', 'Removed'),
-    )
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     role = models.CharField(max_length=50, choices=USER_ROLE, default=USER_ROLE.staff)
-    status = models.CharField(max_length=50, choices=JOINED_STATUS, default=JOINED_STATUS.pending)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.user.email} for {self.account.name}"
