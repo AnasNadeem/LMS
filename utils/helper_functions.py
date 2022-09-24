@@ -10,7 +10,7 @@ from leads.models_user import UserOTP
 from rest_framework import status
 
 
-def send_or_verify_otp(user, otp=None):
+def send_or_verify_otp(user, otp=None, resent=False):
     user_otp = UserOTP.objects.filter(user=user).first()
     if not user_otp:
         random_str = get_random_string(6)
@@ -19,12 +19,18 @@ def send_or_verify_otp(user, otp=None):
         userotp.otp = random_str
         userotp.save()
         send_otp(user, user_otp)
-        resp_data = {'error': 'Resending OTP. Check your email.'}
-        resp_status = status.HTTP_400_BAD_REQUEST
+        resp_data = {'success': f'OTP has been sent to {user.email}.'}
+        resp_status = status.HTTP_200_OK
         return resp_data, resp_status
 
+    if resent:
+        random_str = get_random_string(6)
+        user_otp.otp = random_str
+        user_otp.is_verified = False
+        user_otp.save()
+
     auth_token = jwt.encode({'email': user.email}, settings.SECRET_KEY, algorithm='HS256')
-    if user_otp.is_verified:
+    if (not otp) and (user_otp.is_verified):
         if not user.is_active:
             user.is_active = True
             user.save()
@@ -35,8 +41,8 @@ def send_or_verify_otp(user, otp=None):
 
     if (not otp) and (not user_otp.is_verified):
         send_otp(user, user_otp)
-        resp_data = {'error': f'Please verify your email {user.email}, OTP has been sent.'}
-        resp_status = status.HTTP_400_BAD_REQUEST
+        resp_data = {'success': f'OTP has been sent to {user.email}.'}
+        resp_status = status.HTTP_200_OK
         return resp_data, resp_status
 
     if user_otp.otp == otp:

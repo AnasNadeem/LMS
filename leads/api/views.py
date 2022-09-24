@@ -52,6 +52,19 @@ class LoginApiView(views.APIView):
         return response.Response(resp_data, status=resp_status)
 
 
+class ForgetPassApiView(views.APIView):
+
+    def post(self, request):
+        data = request.data
+        email = data.get('email', '')
+        user = User.objects.filter(email=email).first()
+        if not user:
+            return response.Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        resp_data, resp_status = send_or_verify_otp(user, resent=True)
+        return response.Response(resp_data, status=resp_status)
+
+
 class LoginApiByTokenView(GenericAPIView):
 
     def post(self, request):
