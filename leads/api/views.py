@@ -6,14 +6,21 @@ from rest_framework import response, status, views
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.viewsets import ModelViewSet
 
-from utils.permissions import IsAuthenticated, IsAccountAdmin
+from utils.permissions import (IsAuthenticated,
+                               IsAccountAdmin,
+                               IsAccountMember,
+                               IsAccountMemberAdmin
+                               )
 from utils.helper_functions import send_or_verify_otp
 from .serializers import (MemberSerializer,
                           AccountwithMemberSerializer,
                           RegisterSerializer,
                           UserSerializer,
+                          LeadSerializer,
+                          LeadAttributeSerializer,
                           )
 from leads.models_user import Account, Member, User
+from leads.models_lead import Lead, LeadAttribute
 
 
 class RegisterAPiView(GenericAPIView):
@@ -76,7 +83,6 @@ class PrepareAccountView(GenericAPIView):
         member.user = request.user
         member.account_id = account_id
         member.role = Member.USER_ROLE.admin
-        member.status = Member.JOINED_STATUS.joined
         member.save()
 
         return response.Response(account_serializer.data, status=status.HTTP_201_CREATED)
@@ -112,3 +118,15 @@ class MemberViewset(ModelViewSet):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
     permission_classes = (IsAccountAdmin,)
+
+
+class LeadViewset(ModelViewSet):
+    queryset = Lead.objects.all()
+    serializer_class = LeadSerializer
+    permission_classes = (IsAccountMember,)
+
+
+class LeadAttributeViewset(ModelViewSet):
+    queryset = LeadAttribute.objects.all()
+    serializer_class = LeadAttributeSerializer
+    permission_classes = (IsAccountMemberAdmin,)

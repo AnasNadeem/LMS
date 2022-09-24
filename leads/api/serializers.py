@@ -1,5 +1,6 @@
 from django.utils.crypto import get_random_string
 from leads.models_user import Account, Member, User, UserOTP
+from leads.models_lead import Lead, LeadAttribute
 from rest_framework import serializers
 
 
@@ -67,4 +68,18 @@ class MemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Member
+        fields = '__all__'
+
+
+class LeadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Lead
+        fields = '__all__'
+
+
+class LeadAttributeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LeadAttribute
         fields = '__all__'

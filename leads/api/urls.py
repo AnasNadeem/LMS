@@ -7,6 +7,8 @@ from .views import (
     VerifyOTPView,
     AccountView,
     MemberViewset,
+    LeadViewset,
+    LeadAttributeViewset,
 )
 from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -14,6 +16,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 router = routers.SimpleRouter(trailing_slash=False)
 router.register(r"member", MemberViewset, basename="member")
+router.register(r"lead", LeadViewset, basename="lead")
+router.register(r"leadattribute", LeadAttributeViewset, basename="leadattribute")
 
 urlpatterns = [
     # Authentication Urls
