@@ -1,13 +1,14 @@
+import csv
 import jwt
 
 from django.conf import settings
+from django.http import HttpResponse
 
 from rest_framework import response, status, views
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.viewsets import ModelViewSet
 
 from utils.permissions import (IsAuthenticated,
-                               IsAccountAdmin,
                                IsAccountMember,
                                IsAccountMemberAdmin
                                )
@@ -130,7 +131,7 @@ class AccountView(ListAPIView):
 class MemberViewset(ModelViewSet):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
-    permission_classes = (IsAccountAdmin,)
+    permission_classes = (IsAccountMemberAdmin,)
 
 
 class LeadViewset(ModelViewSet):
@@ -143,3 +144,37 @@ class LeadAttributeViewset(ModelViewSet):
     queryset = LeadAttribute.objects.all()
     serializer_class = LeadAttributeSerializer
     permission_classes = (IsAccountMemberAdmin,)
+
+
+class DownloadCSVLeadStructure(GenericAPIView):
+    permission_classes = (IsAccountMemberAdmin,)
+
+    def get(self, request):
+        account_pk = self.kwargs.get('pk')
+        if not account_pk:
+            resp_data = {'error': 'Account pk cannot be blank.'}
+            resp_status = status.HTTP_400_BAD_REQUEST
+            return response.Response(resp_data, status=resp_status)
+
+        account = Account.objects.filter(pk=account_pk).first()
+        if not account:
+            resp_data = {'error': 'Invalid Account.'}
+            resp_status = status.HTTP_400_BAD_REQUEST
+            return response.Response(resp_data, status=resp_status)
+
+        lead_attrs = (account.leadattribute_set
+                      .filter(lead_type=LeadAttribute.LEAD_CHOICES.main)
+                      .value_list('slug', flat=True)
+                      )
+        if not lead_attrs:
+            resp_data = {'error': 'Lead Structure not defined.'}
+            resp_status = status.HTTP_400_BAD_REQUEST
+            return response.Response(resp_data, status=resp_status)
+
+        csv_response = HttpResponse(content_type='text/csv')
+
+        filename = f'{account.name}.csv'
+        csv_response['Content-Disposition'] = f'attachment; filename={filename}'
+        writer = csv.DictWriter(csv_response, fieldnames=lead_attrs)
+        writer.writeheader()
+        return csv_response

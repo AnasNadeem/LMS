@@ -17,18 +17,6 @@ class IsPartiallyAuthenticated(BasePermission):
         return bool(request.user and request.user.is_authenticated)
 
 
-class IsAccountAdmin(BasePermission):
-
-    def has_permission(self, request, view):
-        member = Member.objects.filter(user=request.user).first()
-        if not member:
-            return False
-        return bool(
-            request.user and
-            (request.user.is_authenticated and request.user.is_active) and
-            (member.role == Member.USER_ROLE.admin))
-
-
 class IsAccountMember(IsAuthenticated):
 
     def has_object_permission(self, request, view, obj):
