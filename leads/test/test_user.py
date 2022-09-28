@@ -6,6 +6,7 @@ from leads.models_user import User
 
 class TestUser(APITestCase):
     REGISTER_URL = reverse('register')
+    LOGIN_URL = reverse('login')
 
     def test_register_incorrect_config(self):
         # Register with no data
@@ -42,3 +43,4 @@ class TestUser(APITestCase):
         resp = self.client.post(self.REGISTER_URL, data)
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(User.objects.all().count(), 1)
+        self.assertTrue('email' in resp.json())

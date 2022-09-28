@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # Third Party Apps
     'phonenumber_field',
     'rest_framework',
+    'django_filters',
     # Our Apps
     'leads',
 ]
@@ -41,9 +42,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'utils.jwtauth.JWTAuthentication',
     ),
-    # 'DEFAULT_FILTER_BACKENDS': (
-    #     'django_filters.rest_framework.DjangoFilterBackend',
-    # ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
 }
 
 MIDDLEWARE = [

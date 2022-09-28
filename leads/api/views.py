@@ -43,11 +43,11 @@ class LoginApiView(views.APIView):
         password = data.get('password', '')
         user = User.objects.filter(email=email).first()
         if not user:
-            return response.Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
+            return response.Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         authenticated = user.check_password(password)
         if not authenticated:
-            return response.Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return response.Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
         resp_data, resp_status = send_or_verify_otp(user)
         return response.Response(resp_data, status=resp_status)
@@ -60,7 +60,7 @@ class ForgetPassApiView(views.APIView):
         email = data.get('email', '')
         user = User.objects.filter(email=email).first()
         if not user:
-            return response.Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
+            return response.Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         resp_data, resp_status = send_or_verify_otp(user, resent=True)
         return response.Response(resp_data, status=resp_status)
@@ -79,7 +79,7 @@ class LoginApiByTokenView(GenericAPIView):
         if user:
             user_serializer_data = UserSerializer(user).data
             return response.Response(user_serializer_data, status=status.HTTP_200_OK)
-        return response.Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+        return response.Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PrepareAccountView(GenericAPIView):
@@ -112,7 +112,7 @@ class VerifyOTPView(GenericAPIView):
 
         user = User.objects.filter(email=email).first()
         if not user:
-            return response.Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
+            return response.Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         otp = data.get('otp', '')
         if not otp:
@@ -186,3 +186,26 @@ class DownloadCSVLeadStructure(GenericAPIView):
         writer = csv.DictWriter(csv_response, fieldnames=lead_attrs)
         writer.writeheader()
         return csv_response
+
+
+# class LeadFilterAPI(GenericAPIView):
+#     permission_classes = (IsAccountMember,)
+
+#     def put(self, request):
+#         data = request.data
+#         account_id = data.get('account_id')
+#         filters = data.get('filters', {})
+#         # {
+#         # "trackdata1":[<option1>, <option2>],
+#         # "trackdata2":[<option1>, <option2>],
+#         # }
+#         account = Account.objects.filter(pk=account_id).first()
+#         if not account:
+#             resp_data = {'error': 'Invalud account'}
+#             resp_status = status.HTTP_400_BAD_REQUEST
+#             return response.Response(resp_data, status=resp_status)
+
+#         leads = account.lead_set.all()
+
+#         validate_filters = leads.first().clean_lead_data('track')
+#         # for filter_key, filter_data in filters:

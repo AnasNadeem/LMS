@@ -14,3 +14,4 @@ For Invite member:
     1. Call on Register api
     2. Call On MemberViewset via post
 Whatsapp Feature
+Scoreboard per member
