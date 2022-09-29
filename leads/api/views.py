@@ -2,6 +2,8 @@ import csv
 import jwt
 
 from django.conf import settings
+from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.db.models.query import Q
 from django.http import HttpResponse
 
 from rest_framework import response, status, views
@@ -188,24 +190,47 @@ class DownloadCSVLeadStructure(GenericAPIView):
         return csv_response
 
 
-# class LeadFilterAPI(GenericAPIView):
-#     permission_classes = (IsAccountMember,)
+class LeadFilterAPI(GenericAPIView):
+    permission_classes = (IsAccountMember,)
 
-#     def put(self, request):
-#         data = request.data
-#         account_id = data.get('account_id')
-#         filters = data.get('filters', {})
-#         # {
-#         # "trackdata1":[<option1>, <option2>],
-#         # "trackdata2":[<option1>, <option2>],
-#         # }
-#         account = Account.objects.filter(pk=account_id).first()
-#         if not account:
-#             resp_data = {'error': 'Invalud account'}
-#             resp_status = status.HTTP_400_BAD_REQUEST
-#             return response.Response(resp_data, status=resp_status)
+    def put(self, request):
+        data = request.data
+        account_id = data.get('account_id')
+        filters = data.get('filters', {})
+        # {
+        # "trackdata1":[<option1>, <option2>],
+        # "trackdata2":[<option1>, <option2>],
+        # }
+        account = Account.objects.filter(pk=account_id).first()
+        if not account:
+            resp_data = {'error': 'Invalud account'}
+            resp_status = status.HTTP_400_BAD_REQUEST
+            return response.Response(resp_data, status=resp_status)
 
-#         leads = account.lead_set.all()
+        leads = account.lead_set.all()
 
-#         validate_filters = leads.first().clean_lead_data('track')
-#         # for filter_key, filter_data in filters:
+        # lead_attrs = (account.leadattribute_set.all()
+        #               .filter(lead_type=LeadAttribute.LEAD_CHOICES.track)
+        #               )
+        # error_list = []
+        # for filter_key, filter_data in filters.items():
+        #     key_leadattr = lead_attrs.filter(slug=filter_key).first()
+        #     if not key_leadattr:
+        #         error = f"Invalid key {filter_key}"
+        #         error_list.append(error)
+        #     for data in filter_data:
+        # TODO - Create a validate function for Lead Attribute
+
+        leads = self.filter_leads(leads, filters)
+        lead_serializer = LeadSerializer(leads, many=True).data
+        return response.Response(lead_serializer, status=status.HTTP_200_OK)
+
+    def filter_leads(leads, filters):
+        for filter_key, filter_value in filters.items():
+            annotate_dict = {filter_key: KeyTextTransform(f'track__{filter_key}', 'fields')}
+            query_dict = {f"{filter_key}__icontains": filter_value}
+            leads = (leads
+                     .annotate(**annotate_dict)
+                     .filter(**query_dict)
+                     )
+        return leads
