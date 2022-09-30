@@ -7,6 +7,8 @@ from django.http import HttpResponse
 from rest_framework import response, status, views
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.viewsets import ModelViewSet
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from utils.permissions import (IsAuthenticated,
                                IsAccountMember,
@@ -37,6 +39,10 @@ class RegisterAPiView(GenericAPIView):
 
 class LoginApiView(views.APIView):
 
+    email_param = openapi.Parameter('email', in_=openapi.IN_QUERY, description='Email', type=openapi.TYPE_STRING, required=True)
+    pass_param = openapi.Parameter('password', in_=openapi.IN_QUERY, description='Password', type=openapi.TYPE_STRING)
+
+    @swagger_auto_schema(manual_parameters=[email_param, pass_param])
     def post(self, request):
         data = request.data
         email = data.get('email', '')
@@ -55,6 +61,9 @@ class LoginApiView(views.APIView):
 
 class ForgetPassApiView(views.APIView):
 
+    email_param = openapi.Parameter('email', in_=openapi.IN_QUERY, description='Email', type=openapi.TYPE_STRING, required=True)
+
+    @swagger_auto_schema(manual_parameters=[email_param])
     def post(self, request):
         data = request.data
         email = data.get('email', '')
@@ -66,8 +75,11 @@ class ForgetPassApiView(views.APIView):
         return response.Response(resp_data, status=resp_status)
 
 
-class LoginApiByTokenView(GenericAPIView):
+class LoginApiByTokenView(views.APIView):
 
+    token_param = openapi.Parameter('token', in_=openapi.IN_QUERY, description='Token', type=openapi.TYPE_STRING)
+
+    @swagger_auto_schema(manual_parameters=[token_param])
     def post(self, request):
         data = request.data
         token = data.get('token')
@@ -102,8 +114,12 @@ class PrepareAccountView(GenericAPIView):
         return response.Response(account_serializer.data, status=status.HTTP_201_CREATED)
 
 
-class VerifyOTPView(GenericAPIView):
+class VerifyOTPView(views.APIView):
 
+    email_param = openapi.Parameter('email', in_=openapi.IN_QUERY, description='Email', type=openapi.TYPE_STRING, required=True)
+    otp_param = openapi.Parameter('otp', in_=openapi.IN_QUERY, description='OTP', type=openapi.TYPE_STRING)
+
+    @swagger_auto_schema(manual_parameters=[email_param, otp_param])
     def post(self, request):
         data = request.data
         email = data.get('email', '')
@@ -154,7 +170,7 @@ class LeadAttributeViewset(ModelViewSet):
     permission_classes = (IsAccountMemberAdmin,)
 
 
-class DownloadCSVLeadStructure(GenericAPIView):
+class DownloadCSVLeadStructure(views.APIView):
     permission_classes = (IsAccountMemberAdmin,)
 
     def get(self, request):
@@ -188,7 +204,7 @@ class DownloadCSVLeadStructure(GenericAPIView):
         return csv_response
 
 
-# class LeadFilterAPI(GenericAPIView):
+# class LeadFilterAPI(views.APIView):
 #     permission_classes = (IsAccountMember,)
 
 #     def put(self, request):
