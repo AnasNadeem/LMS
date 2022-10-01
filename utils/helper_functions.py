@@ -14,10 +14,10 @@ def send_or_verify_otp(user, otp=None, resent=False):
     user_otp = UserOTP.objects.filter(user=user).first()
     if not user_otp:
         random_str = get_random_string(6)
-        userotp = UserOTP()
-        userotp.user = user
-        userotp.otp = random_str
-        userotp.save()
+        user_otp = UserOTP()
+        user_otp.user = user
+        user_otp.otp = random_str
+        user_otp.save()
         send_otp(user, user_otp)
         resp_data = {'success': f'OTP has been sent to {user.email}.'}
         resp_status = status.HTTP_200_OK

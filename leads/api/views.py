@@ -33,10 +33,11 @@ class RegisterAPiView(GenericAPIView):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return response.Response(serializer.data, status=status.HTTP_201_CREATED)
-        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        user = User.objects.filter(email=serializer.data.get('email')).first()
+        resp_data, resp_status = send_or_verify_otp(user)
+        return response.Response(resp_data, status=resp_status)
 
 
 class LoginApiView(views.APIView):

@@ -41,6 +41,5 @@ class TestUser(APITestCase):
         # Register with correct data
         data = {'email': 'test@gmail.com', 'password': 'Test@123'}
         resp = self.client.post(self.REGISTER_URL, data)
-        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.status_code, 200)
         self.assertEqual(User.objects.all().count(), 1)
-        self.assertTrue('email' in resp.json())
