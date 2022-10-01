@@ -11,6 +11,7 @@ from .views import (
     LeadViewset,
     LeadAttributeViewset,
     DownloadCSVLeadStructure,
+    LeadFilterAPI,
 )
 from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -31,6 +32,7 @@ urlpatterns = [
     path('verify_otp/', VerifyOTPView.as_view(), name='verify-otp'),
     path('account/', AccountView.as_view(), name='fetch-account'),
     path('download_csv_structure/', DownloadCSVLeadStructure.as_view(), name='lead-structure'),
+    path('lead_filter/', LeadFilterAPI.as_view(), name='lead-filter'),
 ]
 
 urlpatterns += router.urls

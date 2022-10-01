@@ -3,7 +3,7 @@ import jwt
 
 from django.conf import settings
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
-from django.db.models.query import Q
+# from django.db.models.query import Q
 from django.http import HttpResponse
 
 from rest_framework import response, status, views
@@ -41,10 +41,13 @@ class RegisterAPiView(GenericAPIView):
 
 class LoginApiView(views.APIView):
 
-    email_param = openapi.Parameter('email', in_=openapi.IN_QUERY, description='Email', type=openapi.TYPE_STRING, required=True)
-    pass_param = openapi.Parameter('password', in_=openapi.IN_QUERY, description='Password', type=openapi.TYPE_STRING)
+    email_param = openapi.Schema('email', description='Email', type=openapi.TYPE_STRING)
+    pass_param = openapi.Schema('password', description='Password', type=openapi.TYPE_STRING)
 
-    @swagger_auto_schema(manual_parameters=[email_param, pass_param])
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'email': email_param, 'password': pass_param}
+    ))
     def post(self, request):
         data = request.data
         email = data.get('email', '')
@@ -63,9 +66,12 @@ class LoginApiView(views.APIView):
 
 class ForgetPassApiView(views.APIView):
 
-    email_param = openapi.Parameter('email', in_=openapi.IN_QUERY, description='Email', type=openapi.TYPE_STRING, required=True)
+    email_param = openapi.Schema('email', description='Email', type=openapi.TYPE_STRING)
 
-    @swagger_auto_schema(manual_parameters=[email_param])
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'email': email_param}
+    ))
     def post(self, request):
         data = request.data
         email = data.get('email', '')
@@ -79,9 +85,12 @@ class ForgetPassApiView(views.APIView):
 
 class LoginApiByTokenView(views.APIView):
 
-    token_param = openapi.Parameter('token', in_=openapi.IN_QUERY, description='Token', type=openapi.TYPE_STRING)
+    token_param = openapi.Schema('token', description='Token', type=openapi.TYPE_STRING)
 
-    @swagger_auto_schema(manual_parameters=[token_param])
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'token': token_param}
+    ))
     def post(self, request):
         data = request.data
         token = data.get('token')
@@ -118,10 +127,13 @@ class PrepareAccountView(GenericAPIView):
 
 class VerifyOTPView(views.APIView):
 
-    email_param = openapi.Parameter('email', in_=openapi.IN_QUERY, description='Email', type=openapi.TYPE_STRING, required=True)
-    otp_param = openapi.Parameter('otp', in_=openapi.IN_QUERY, description='OTP', type=openapi.TYPE_STRING)
+    email_param = openapi.Schema('email', description='Email', type=openapi.TYPE_STRING)
+    otp_param = openapi.Schema('otp', description='OTP', type=openapi.TYPE_STRING)
 
-    @swagger_auto_schema(manual_parameters=[email_param, otp_param])
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'email': email_param, 'otp': otp_param}
+    ))
     def post(self, request):
         data = request.data
         email = data.get('email', '')
@@ -175,6 +187,9 @@ class LeadAttributeViewset(ModelViewSet):
 class DownloadCSVLeadStructure(views.APIView):
     permission_classes = (IsAccountMemberAdmin,)
 
+    account_pk_param = openapi.Parameter('pk', in_=openapi.IN_QUERY, description='Account Pk', type=openapi.TYPE_STRING, required=True)
+
+    @swagger_auto_schema(manual_parameters=[account_pk_param])
     def get(self, request):
         account_pk = self.kwargs.get('pk')
         if not account_pk:
@@ -209,6 +224,13 @@ class DownloadCSVLeadStructure(views.APIView):
 class LeadFilterAPI(views.APIView):
     permission_classes = (IsAccountMember,)
 
+    account_pk_param = openapi.Schema('account_id', description='Account Id', type=openapi.TYPE_STRING)
+    filters_param = openapi.Schema('filters', description='Filters', type=openapi.TYPE_OBJECT)
+
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={'account_id': account_pk_param, 'filters': filters_param}
+    ))
     def put(self, request):
         data = request.data
         account_id = data.get('account_id')
