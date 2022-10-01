@@ -8,6 +8,10 @@ class TestUser(APITestCase):
     REGISTER_URL = reverse('register')
     LOGIN_URL = reverse('login')
 
+    ######################
+    # ---- REGISTER ---- #
+    ######################
+
     def test_register_incorrect_config(self):
         # Register with no data
         data = {}
@@ -43,3 +47,19 @@ class TestUser(APITestCase):
         resp = self.client.post(self.REGISTER_URL, data)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(User.objects.all().count(), 1)
+
+    ######################
+    # ---- LOGIN ---- #
+    ######################
+
+    def test_login_incorrect_config(self):
+        # Login with not registered mail
+        data = {'email': 'test@gmail.com', 'password': 'Test'}
+        resp = self.client.post(self.LOGIN_URL, data)
+        self.assertEqual(resp.status_code, 400)
+
+    # def test_login_correct_config(self):
+    #     # Login with correct data
+    #     data = {'email': 'test@gmail.com', 'password': 'Test@123'}
+    #     resp = self.client.post(self.LOGIN_URL, data)
+    #     self.assertEqual(resp.status_code, 200)

@@ -113,8 +113,8 @@ class PrepareAccountView(GenericAPIView):
     def post(self, request):
         data = request.data
         account_serializer = self.serializer_class(data=data)
-        if account_serializer.is_valid():
-            account_serializer.save()
+        account_serializer.is_valid(raise_exception=True)
+        account_serializer.save()
 
         account_id = account_serializer.data.get('id')
         member = Member()
