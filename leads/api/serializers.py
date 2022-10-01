@@ -35,6 +35,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
+class AccountSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Account
+        fields = '__all__'
+
+
 class AccountwithMemberSerializer(serializers.ModelSerializer):
     members = serializers.SerializerMethodField()
 
@@ -44,17 +51,25 @@ class AccountwithMemberSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'business_desc',
+            'subdomain',
             'members',
         )
 
     def get_members(self, obj):
         account = Account.objects.get(pk=obj.id)
         members = account.member_set.all()
-        members_serializer = MemberSerializer(members, many=True)
+        members_serializer = MemberWithUserSerializer(members, many=True)
         return members_serializer.data
 
 
 class MemberSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Member
+        fields = '__all__'
+
+
+class MemberWithUserSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:
