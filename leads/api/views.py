@@ -7,49 +7,54 @@ from django.contrib.postgres.fields.jsonb import KeyTextTransform
 from django.http import HttpResponse
 
 from rest_framework import response, status, views
-from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from utils.permissions import (IsAuthenticated,
                                IsAccountMember,
-                               IsAccountMemberAdmin
+                               IsAccountMemberAdmin,
+                               PermissionForAccountViewset,
                                )
 from utils.helper_functions import send_or_verify_otp
-from .serializers import (MemberSerializer,
+from .serializers import (AccountSerializer,
                           AccountwithMemberSerializer,
-                          RegisterSerializer,
-                          UserSerializer,
+                          MemberSerializer,
+                          MemberWithUserSerializer,
                           LeadSerializer,
                           LeadAttributeSerializer,
+                          RegisterSerializer,
+                          UserSerializer,
                           )
 from leads.models_user import Account, Member, User
 from leads.models_lead import Lead, LeadAttribute
 
 
-class RegisterAPiView(GenericAPIView):
-    serializer_class = RegisterSerializer
+class UserViewset(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    # permission_classes = ()
 
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+    def get_serializer_class(self):
+        member_serializer_map = {
+            "register": RegisterSerializer,
+            "login": RegisterSerializer,
+        }
+        return member_serializer_map.get(self.action.lower(), UserSerializer)
+
+    @action(detail=False, methods=['post'])
+    def register(self, request):
+        serializer = self.get_serializer_class()
+        serializer = serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         user = User.objects.filter(email=serializer.data.get('email')).first()
         resp_data, resp_status = send_or_verify_otp(user)
         return response.Response(resp_data, status=resp_status)
 
-
-class LoginApiView(views.APIView):
-
-    email_param = openapi.Schema('email', description='Email', type=openapi.TYPE_STRING)
-    pass_param = openapi.Schema('password', description='Password', type=openapi.TYPE_STRING)
-
-    @swagger_auto_schema(request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={'email': email_param, 'password': pass_param}
-    ))
-    def post(self, request):
+    @action(detail=False, methods=['post'])
+    def login(self, request):
         data = request.data
         email = data.get('email', '')
         password = data.get('password', '')
@@ -64,16 +69,8 @@ class LoginApiView(views.APIView):
         resp_data, resp_status = send_or_verify_otp(user)
         return response.Response(resp_data, status=resp_status)
 
-
-class ForgetPassApiView(views.APIView):
-
-    email_param = openapi.Schema('email', description='Email', type=openapi.TYPE_STRING)
-
-    @swagger_auto_schema(request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={'email': email_param}
-    ))
-    def post(self, request):
+    @action(detail=False, methods=['post'])
+    def forget_password(self, request):
         data = request.data
         email = data.get('email', '')
         user = User.objects.filter(email=email).first()
@@ -83,16 +80,8 @@ class ForgetPassApiView(views.APIView):
         resp_data, resp_status = send_or_verify_otp(user, resent=True)
         return response.Response(resp_data, status=resp_status)
 
-
-class LoginApiByTokenView(views.APIView):
-
-    token_param = openapi.Schema('token', description='Token', type=openapi.TYPE_STRING)
-
-    @swagger_auto_schema(request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={'token': token_param}
-    ))
-    def post(self, request):
+    @action(detail=False, methods=['post'])
+    def token_login(self, request):
         data = request.data
         token = data.get('token')
         if not token:
@@ -105,37 +94,8 @@ class LoginApiByTokenView(views.APIView):
             return response.Response(user_serializer_data, status=status.HTTP_200_OK)
         return response.Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-class PrepareAccountView(GenericAPIView):
-    permission_classes = (IsAuthenticated,)
-    serializer_class = AccountwithMemberSerializer
-
-    def post(self, request):
-        data = request.data
-        account_serializer = self.serializer_class(data=data)
-        account_serializer.is_valid(raise_exception=True)
-        account_serializer.save()
-
-        account_id = account_serializer.data.get('id')
-        member = Member()
-        member.user = request.user
-        member.account_id = account_id
-        member.role = Member.USER_ROLE.admin
-        member.save()
-
-        return response.Response(account_serializer.data, status=status.HTTP_201_CREATED)
-
-
-class VerifyOTPView(views.APIView):
-
-    email_param = openapi.Schema('email', description='Email', type=openapi.TYPE_STRING)
-    otp_param = openapi.Schema('otp', description='OTP', type=openapi.TYPE_STRING)
-
-    @swagger_auto_schema(request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={'email': email_param, 'otp': otp_param}
-    ))
-    def post(self, request):
+    @action(detail=False, methods=['post'])
+    def verify_otp(self, request):
         data = request.data
         email = data.get('email', '')
         if not email:
@@ -153,16 +113,87 @@ class VerifyOTPView(views.APIView):
         return response.Response(resp_data, status=resp_status)
 
 
-class AccountView(ListAPIView):
+class AccountViewset(ModelViewSet):
     queryset = Account.objects.all()
-    permission_classes = (IsAuthenticated,)
     serializer_class = AccountwithMemberSerializer
+    permission_classes = (IsAccountMemberAdmin,)
+
+    def get_permissions(self):
+        if self.action in ['create']:
+            self.permission_classes = [IsAuthenticated, ]
+        else:
+            self.permission_classes = [PermissionForAccountViewset, ]
+        return super().get_permissions()
+
+    def get_serializer_class(self):
+        member_serializer_map = {
+            "prepare_account": AccountSerializer,
+            "list": AccountwithMemberSerializer,
+            "retrieve": AccountwithMemberSerializer,
+            "post": AccountSerializer,
+            "put": AccountSerializer
+        }
+        return member_serializer_map.get(self.action.lower(), AccountSerializer)
+
+    def get_queryset(self):
+        members = self.request.user.member_set.all()
+        accounts = [member.account for member in members]
+        return accounts
+
+    @action(detail=False, methods=['post'])
+    def prepare_account(self, request):
+        data = request.data
+        account_serializer = self.get_serializer_class()
+        account_serializer = account_serializer(data=data)
+        account_serializer.is_valid(raise_exception=True)
+        account_serializer.save()
+
+        account_id = account_serializer.data.get('id')
+        member = Member()
+        member.user = request.user
+        member.account_id = account_id
+        member.role = Member.USER_ROLE.admin
+        member.save()
+
+        account = Account.objects.get(pk=account_id)
+        account_member_serializer = AccountwithMemberSerializer(account)
+        return response.Response(account_member_serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['get'])
+    def download_csv(self, request, pk=None):
+        account = self.get_object()
+        lead_attrs = (account.leadattribute_set
+                      .filter(lead_type=LeadAttribute.LEAD_CHOICES.main)
+                      .value_list('slug', flat=True)
+                      )
+        if not lead_attrs:
+            resp_data = {'error': 'Lead Structure not defined.'}
+            resp_status = status.HTTP_400_BAD_REQUEST
+            return response.Response(resp_data, status=resp_status)
+
+        csv_response = HttpResponse(content_type='text/csv')
+
+        filename = f'{account.name}.csv'
+        csv_response['Content-Disposition'] = f'attachment; filename={filename}'
+        writer = csv.DictWriter(csv_response, fieldnames=lead_attrs)
+        writer.writeheader()
+        return csv_response
 
 
 class MemberViewset(ModelViewSet):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
     permission_classes = (IsAccountMemberAdmin,)
+
+    def get_serializer_class(self):
+        member_serializer_map = {
+            "get": MemberWithUserSerializer,
+            "list": MemberWithUserSerializer,
+            "retrieve": MemberWithUserSerializer,
+            "post": MemberSerializer,
+            "put": MemberSerializer
+        }
+        return member_serializer_map.get(self.action.lower(), MemberSerializer)
 
     def create(self, request, *args, **kwargs):
         # TODO - Send mail
@@ -183,43 +214,6 @@ class LeadAttributeViewset(ModelViewSet):
     queryset = LeadAttribute.objects.all()
     serializer_class = LeadAttributeSerializer
     permission_classes = (IsAccountMemberAdmin,)
-
-
-class DownloadCSVLeadStructure(views.APIView):
-    permission_classes = (IsAccountMemberAdmin,)
-
-    account_pk_param = openapi.Parameter('pk', in_=openapi.IN_QUERY, description='Account Pk', type=openapi.TYPE_STRING, required=True)
-
-    @swagger_auto_schema(manual_parameters=[account_pk_param])
-    def get(self, request):
-        account_pk = self.kwargs.get('pk')
-        if not account_pk:
-            resp_data = {'error': 'Account pk cannot be blank.'}
-            resp_status = status.HTTP_400_BAD_REQUEST
-            return response.Response(resp_data, status=resp_status)
-
-        account = Account.objects.filter(pk=account_pk).first()
-        if not account:
-            resp_data = {'error': 'Invalid Account.'}
-            resp_status = status.HTTP_400_BAD_REQUEST
-            return response.Response(resp_data, status=resp_status)
-
-        lead_attrs = (account.leadattribute_set
-                      .filter(lead_type=LeadAttribute.LEAD_CHOICES.main)
-                      .value_list('slug', flat=True)
-                      )
-        if not lead_attrs:
-            resp_data = {'error': 'Lead Structure not defined.'}
-            resp_status = status.HTTP_400_BAD_REQUEST
-            return response.Response(resp_data, status=resp_status)
-
-        csv_response = HttpResponse(content_type='text/csv')
-
-        filename = f'{account.name}.csv'
-        csv_response['Content-Disposition'] = f'attachment; filename={filename}'
-        writer = csv.DictWriter(csv_response, fieldnames=lead_attrs)
-        writer.writeheader()
-        return csv_response
 
 
 class LeadFilterAPI(views.APIView):
