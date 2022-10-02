@@ -17,7 +17,13 @@ class IsPartiallyAuthenticated(BasePermission):
         return bool(request.user and request.user.is_authenticated)
 
 
-class PermissionForAccountViewset(IsAuthenticated):
+class UserPermission(IsAuthenticated):
+
+    def has_object_permission(self, request, view, obj):
+        return obj == request.user
+
+
+class AccountPermission(IsAuthenticated):
 
     def has_object_permission(self, request, view, obj):
         account_id_list = request.user.member_set.all().value_list('account__pk')

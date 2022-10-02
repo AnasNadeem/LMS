@@ -6,7 +6,7 @@ from django.contrib.postgres.fields.jsonb import KeyTextTransform
 # from django.db.models.query import Q
 from django.http import HttpResponse
 
-from rest_framework import response, status, views
+from rest_framework import response, status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from drf_yasg.utils import swagger_auto_schema
@@ -15,17 +15,22 @@ from drf_yasg import openapi
 from utils.permissions import (IsAuthenticated,
                                IsAccountMember,
                                IsAccountMemberAdmin,
-                               PermissionForAccountViewset,
+                               AccountPermission,
+                               UserPermission,
                                )
 from utils.helper_functions import send_or_verify_otp
 from .serializers import (AccountSerializer,
                           AccountwithMemberSerializer,
-                          MemberSerializer,
-                          MemberWithUserSerializer,
+                          LoginSerializer,
                           LeadSerializer,
                           LeadAttributeSerializer,
+                          MemberSerializer,
+                          MemberWithUserSerializer,
+                          OtpSerializer,
                           RegisterSerializer,
+                          TokenSerializer,
                           UserSerializer,
+                          UserEmailSerializer,
                           )
 from leads.models_user import Account, Member, User
 from leads.models_lead import Lead, LeadAttribute
@@ -34,14 +39,25 @@ from leads.models_lead import Lead, LeadAttribute
 class UserViewset(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = ()
+    permission_classes = ()
+
+    def get_permissions(self):
+        user_permission_map = {
+            "update": UserPermission
+        }
+        if user_permission_map.get(self.action.lower()):
+            self.permission_classes = user_permission_map.get(self.action.lower())
+        return super().get_permissions()
 
     def get_serializer_class(self):
-        member_serializer_map = {
+        user_serializer_map = {
             "register": RegisterSerializer,
-            "login": RegisterSerializer,
+            "login": LoginSerializer,
+            "forget_password": UserEmailSerializer,
+            "verify_otp": OtpSerializer,
+            "token_login": TokenSerializer,
         }
-        return member_serializer_map.get(self.action.lower(), UserSerializer)
+        return user_serializer_map.get(self.action.lower(), UserSerializer)
 
     @action(detail=False, methods=['post'])
     def register(self, request):
@@ -119,10 +135,10 @@ class AccountViewset(ModelViewSet):
     permission_classes = (IsAccountMemberAdmin,)
 
     def get_permissions(self):
-        if self.action in ['create']:
-            self.permission_classes = [IsAuthenticated, ]
-        else:
-            self.permission_classes = [PermissionForAccountViewset, ]
+        user_permission_map = {
+            "create": IsAuthenticated
+        }
+        self.permission_classes = user_permission_map.get(self.action.lower(), AccountPermission)
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -136,6 +152,8 @@ class AccountViewset(ModelViewSet):
         return member_serializer_map.get(self.action.lower(), AccountSerializer)
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return []
         members = self.request.user.member_set.all()
         accounts = [member.account for member in members]
         return accounts
@@ -209,16 +227,6 @@ class LeadViewset(ModelViewSet):
     serializer_class = LeadSerializer
     permission_classes = (IsAccountMember,)
 
-
-class LeadAttributeViewset(ModelViewSet):
-    queryset = LeadAttribute.objects.all()
-    serializer_class = LeadAttributeSerializer
-    permission_classes = (IsAccountMemberAdmin,)
-
-
-class LeadFilterAPI(views.APIView):
-    permission_classes = (IsAccountMember,)
-
     account_pk_param = openapi.Schema('account_id', description='Account Id', type=openapi.TYPE_STRING)
     filters_param = openapi.Schema('filters', description='Filters', type=openapi.TYPE_OBJECT)
 
@@ -226,7 +234,8 @@ class LeadFilterAPI(views.APIView):
         type=openapi.TYPE_OBJECT,
         properties={'account_id': account_pk_param, 'filters': filters_param}
     ))
-    def put(self, request):
+    @action(detail=False, methods=['put'])
+    def lead_filter(self, request):
         data = request.data
         account_id = data.get('account_id')
         filters = data.get('filters', {})
@@ -267,3 +276,9 @@ class LeadFilterAPI(views.APIView):
                      .filter(**query_dict)
                      )
         return leads
+
+
+class LeadAttributeViewset(ModelViewSet):
+    queryset = LeadAttribute.objects.all()
+    serializer_class = LeadAttributeSerializer
+    permission_classes = (IsAccountMemberAdmin,)
