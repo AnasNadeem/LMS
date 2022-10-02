@@ -15,8 +15,8 @@ class UserAdmin(admin.ModelAdmin):
 
 
 class AccountAdmin(TimeBaseModelAdmin):
-    list_display = ("name", "is_active",) + TimeBaseModelAdmin.list_display
-    list_filter = ("is_active",)
+    list_display = ("name", "subdomain", "is_active",) + TimeBaseModelAdmin.list_display
+    list_filter = ("subdomain", "is_active",)
 
 
 class MemberAdmin(TimeBaseModelAdmin):

@@ -6,6 +6,11 @@ from django.db import models
 from model_utils import Choices
 from leads.models_base import TimeBaseModel
 from leads.models_user import Account, Member
+from autoslug.settings import slugify as default_slugify
+
+
+def custom_slugify(value):
+    return default_slugify(value).replace('-', '_')
 
 
 class LeadAttribute(TimeBaseModel):
@@ -26,7 +31,7 @@ class LeadAttribute(TimeBaseModel):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     lead_type = models.CharField(max_length=10, choices=LEAD_CHOICES)
     name = models.CharField(max_length=250)
-    slug = AutoSlugField(populate_from='name', unique_with=('account', 'lead_type'))
+    slug = AutoSlugField(custom_slugify, populate_from='name', unique_with=('account', 'lead_type'))
     attribute_type = models.CharField(max_length=50, choices=ATTRIBUTE_CHOICES)
     value = models.JSONField(default=dict, null=True, blank=True)
     seq_no = models.PositiveIntegerField()

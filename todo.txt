@@ -17,3 +17,4 @@ Whatsapp Feature
 Scoreboard per member
 Send otp after registering an account
 Subdomain Middleware
+Fix get_permissions

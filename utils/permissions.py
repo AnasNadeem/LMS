@@ -26,14 +26,14 @@ class UserPermission(IsAuthenticated):
 class AccountPermission(IsAuthenticated):
 
     def has_object_permission(self, request, view, obj):
-        account_id_list = request.user.member_set.all().value_list('account__pk')
+        account_id_list = request.user.member_set.all().values_list('account__pk')
         return obj.pk in account_id_list
 
 
 class IsAccountMember(IsAuthenticated):
 
     def has_object_permission(self, request, view, obj):
-        account_id_list = request.user.member_set.all().value_list('account__pk')
+        account_id_list = request.user.member_set.all().values_list('account__pk')
         return obj.account.pk in account_id_list
 
 
@@ -42,6 +42,6 @@ class IsAccountMemberAdmin(IsAuthenticated):
     def has_object_permission(self, request, view, obj):
         account_id_list = (request.user.member_set
                            .filter(role=Member.USER_ROLE.admin)
-                           .value_list('account__pk')
+                           .values_list('account__pk', flat=True)
                            )
         return obj.account.pk in account_id_list

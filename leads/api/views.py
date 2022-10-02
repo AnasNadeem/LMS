@@ -46,7 +46,7 @@ class UserViewset(ModelViewSet):
             "update": UserPermission
         }
         if user_permission_map.get(self.action.lower()):
-            self.permission_classes = user_permission_map.get(self.action.lower())
+            self.permission_classes = [user_permission_map.get(self.action.lower())]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -132,13 +132,19 @@ class UserViewset(ModelViewSet):
 class AccountViewset(ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountwithMemberSerializer
-    permission_classes = (IsAccountMemberAdmin,)
+    permission_classes = (IsAuthenticated,)
 
     def get_permissions(self):
-        user_permission_map = {
-            "create": IsAuthenticated
+        account_permission_map = {
+            "create": IsAuthenticated,
+            "download_csv": IsAccountMemberAdmin,
+            "list": IsAuthenticated,
+            "prepare_account": IsAuthenticated,
+            "retrieve": IsAuthenticated,
+            "update": IsAccountMemberAdmin,
+            "partial_update": IsAccountMemberAdmin,
         }
-        self.permission_classes = user_permission_map.get(self.action.lower(), AccountPermission)
+        self.permission_classes = [account_permission_map.get(self.action.lower(), AccountPermission)]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -182,7 +188,7 @@ class AccountViewset(ModelViewSet):
         account = self.get_object()
         lead_attrs = (account.leadattribute_set
                       .filter(lead_type=LeadAttribute.LEAD_CHOICES.main)
-                      .value_list('slug', flat=True)
+                      .values_list('slug', flat=True)
                       )
         if not lead_attrs:
             resp_data = {'error': 'Lead Structure not defined.'}
@@ -282,3 +288,10 @@ class LeadAttributeViewset(ModelViewSet):
     queryset = LeadAttribute.objects.all()
     serializer_class = LeadAttributeSerializer
     permission_classes = (IsAccountMemberAdmin,)
+
+    # def get_queryset(self):
+    #     if not self.request.user.is_authenticated:
+    #         return []
+    #     members = self.request.user.member_set.all()
+    #     accounts = [member.account for member in members]
+    #     return accounts
