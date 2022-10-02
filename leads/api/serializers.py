@@ -2,6 +2,10 @@ from leads.models_user import Account, Member, User
 from leads.models_lead import Lead, LeadAttribute
 from rest_framework import serializers
 
+######################
+# ---- USER ---- #
+######################
+
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -35,6 +39,41 @@ class RegisterSerializer(serializers.ModelSerializer):
         return User.objects.create_user(**validated_data)
 
 
+class LoginSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(max_length=50, min_length=4)
+    email = serializers.EmailField(max_length=100)
+
+    class Meta:
+        model = User
+        fields = ('email', 'password')
+        read_only_fields = ('password', )
+
+
+class OtpSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=100)
+    otp = serializers.CharField(max_length=10)
+
+    class Meta:
+        model = User
+        fields = ('email', 'otp')
+
+
+class UserEmailSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=100)
+
+    class Meta:
+        model = User
+        fields = ('email',)
+
+
+class TokenSerializer(serializers.Serializer):
+    token = serializers.CharField(max_length=250)
+
+######################
+# ---- ACCOUNT ---- #
+######################
+
+
 class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -61,6 +100,10 @@ class AccountwithMemberSerializer(serializers.ModelSerializer):
         members_serializer = MemberWithUserSerializer(members, many=True)
         return members_serializer.data
 
+######################
+# ---- MEMBER ---- #
+######################
+
 
 class MemberSerializer(serializers.ModelSerializer):
 
@@ -76,12 +119,20 @@ class MemberWithUserSerializer(serializers.ModelSerializer):
         model = Member
         fields = '__all__'
 
+######################
+# ---- LEAD ---- #
+######################
+
 
 class LeadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lead
         fields = '__all__'
+
+######################
+# ---- LEAD ATTRIBUTE ---- #
+######################
 
 
 class LeadAttributeSerializer(serializers.ModelSerializer):
