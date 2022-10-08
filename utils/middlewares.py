@@ -1,11 +1,11 @@
 from django.contrib.sites.models import Site
-from django.db.models.query import Q
 from django.http import Http404
 
+from utils.jwtauth import JWTAuthentication
 from leads.models_user import Account, Member
 
 
-class SubdomainMiddleware(object):
+class AccountMiddleware(object):
     domain = Site.objects.get_current().domain
 
     def __init__(self, get_response=None):
@@ -14,21 +14,25 @@ class SubdomainMiddleware(object):
     def __call__(self, request):
         hostname = request.get_host()
 
-        request.account, request.subdomain = self.get_account_from_hostname(hostname)
-        request.domain = self.domain
+        request.account = self.get_account_from_hostname(hostname)
+        if not request.account:
+            response = self.get_response(request)
+            return response
+
         request.member = None
+        if getattr(request, 'account', None) and (not request.user.is_authenticated):
+            JWTAuthentication().authenticate(request)
 
         if getattr(request, 'account', None) and (not (request.user.is_authenticated and request.user.is_active)):
-            raise Http404(f"Invalid user {request.user.email}")
+            raise Http404(f"Invalid user {request.user}.")
 
-        if getattr(request, 'account', None) and request.user.is_authenticated:
-            request.member = (Member.objects
-                              .filter(account=request.account, user=request.user)
-                              .filter(Q(status='pending') | Q(status='joined'))
-                              .first()
-                              )
-            if not getattr(request, 'member', None):
-                raise Http404(f"Account user {request.user.email} not found")
+        request.member = (Member.objects
+                          .filter(account=request.account)
+                          .filter(user=request.user)
+                          .first()
+                          )
+        if not getattr(request, 'member', None):
+            raise Http404(f"Member {request.user.email} not found")
 
         response = self.get_response(request)
         return response
@@ -38,12 +42,11 @@ class SubdomainMiddleware(object):
         hostname_split_dot = hostname.split('.')
         domain_split_dot = cls.domain.split('.')
 
-        if hostname_split_dot[-len(domain_split_dot):] != domain_split_dot:
-            raise Http404(f"Domain {hostname} not found")
-
         subdomain_split_dot = hostname_split_dot[:-len(domain_split_dot)]
-        subdomain = '.'.join(subdomain_split_dot)
+        if not subdomain_split_dot:
+            return None
 
+        subdomain = '.'.join(subdomain_split_dot)
         account = Account.objects.filter(subdomain__iexact=subdomain).first()
 
         if not account:
@@ -52,4 +55,4 @@ class SubdomainMiddleware(object):
         if not account.is_active:
             raise Http404(f"Account {subdomain} has been disabled")
 
-        return account, subdomain
+        return account

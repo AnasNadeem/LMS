@@ -1,12 +1,11 @@
-from django.urls import reverse
-
 from rest_framework.test import APITestCase
 from leads.models_user import User
 
 
 class TestUser(APITestCase):
-    REGISTER_URL = reverse('register')
-    LOGIN_URL = reverse('login')
+    BASE_URL = 'http://localhost:8000'
+    REGISTER_URL = BASE_URL + '/api/user/register'
+    LOGIN_URL = BASE_URL + '/api/user/login'
 
     ######################
     # ---- REGISTER ---- #

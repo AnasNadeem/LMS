@@ -139,7 +139,6 @@ class AccountViewset(ModelViewSet):
             "create": IsAuthenticated,
             "download_csv": IsAccountMemberAdmin,
             "list": IsAuthenticated,
-            "prepare_account": IsAuthenticated,
             "retrieve": IsAuthenticated,
             "update": IsAccountMemberAdmin,
             "partial_update": IsAccountMemberAdmin,
@@ -149,7 +148,7 @@ class AccountViewset(ModelViewSet):
 
     def get_serializer_class(self):
         member_serializer_map = {
-            "prepare_account": AccountSerializer,
+            "create": AccountSerializer,
             "list": AccountwithMemberSerializer,
             "retrieve": AccountwithMemberSerializer,
             "post": AccountSerializer,
@@ -164,8 +163,7 @@ class AccountViewset(ModelViewSet):
         accounts = [member.account for member in members]
         return accounts
 
-    @action(detail=False, methods=['post'])
-    def prepare_account(self, request):
+    def create(self, request, *args, **kwargs):
         data = request.data
         account_serializer = self.get_serializer_class()
         account_serializer = account_serializer(data=data)
