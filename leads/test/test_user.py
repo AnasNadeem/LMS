@@ -4,7 +4,7 @@ from leads.models_user import User
 
 class TestUser(APITestCase):
     BASE_URL = 'http://localhost:8000'
-    REGISTER_URL = BASE_URL + '/api/user/register'
+    REGISTER_URL = BASE_URL + '/api/user'
     LOGIN_URL = BASE_URL + '/api/user/login'
 
     ######################
@@ -57,8 +57,9 @@ class TestUser(APITestCase):
         resp = self.client.post(self.LOGIN_URL, data)
         self.assertEqual(resp.status_code, 400)
 
-    # def test_login_correct_config(self):
-    #     # Login with correct data
-    #     data = {'email': 'test@gmail.com', 'password': 'Test@123'}
-    #     resp = self.client.post(self.LOGIN_URL, data)
-    #     self.assertEqual(resp.status_code, 200)
+    def test_login_correct_config(self):
+        # Login with correct data
+        data = {'email': 'test@gmail.com', 'password': 'Test@123'}
+        User.objects.create_user(**data)
+        resp = self.client.post(self.LOGIN_URL, data)
+        self.assertEqual(resp.status_code, 200)

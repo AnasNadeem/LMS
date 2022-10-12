@@ -45,13 +45,13 @@ class UserViewset(ModelViewSet):
         user_permission_map = {
             "update": UserPermission
         }
-        if user_permission_map.get(self.action.lower()):
-            self.permission_classes = [user_permission_map.get(self.action.lower())]
+        if self.action in user_permission_map:
+            self.permission_classes = [user_permission_map.get(self.action)]
         return super().get_permissions()
 
     def get_serializer_class(self):
         user_serializer_map = {
-            "register": RegisterSerializer,
+            "create": RegisterSerializer,
             "login": LoginSerializer,
             "forget_password": UserEmailSerializer,
             "verify_otp": OtpSerializer,
@@ -59,8 +59,7 @@ class UserViewset(ModelViewSet):
         }
         return user_serializer_map.get(self.action.lower(), UserSerializer)
 
-    @action(detail=False, methods=['post'])
-    def register(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = self.get_serializer_class()
         serializer = serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
