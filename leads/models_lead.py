@@ -21,6 +21,7 @@ class LeadAttribute(TimeBaseModel):
     )
 
     ATTRIBUTE_CHOICES = Choices(
+        ('boolean', 'Boolean'),
         ('choices', 'Choices'),
         ('email', 'Email'),
         ('integer', 'Integer'),
@@ -89,6 +90,12 @@ class Lead(TimeBaseModel):
                 if not phonenumbers.is_valid_number(phone_num):
                     raise ValidationError(f"Invalid phone number '{lead_value}' for field {lead_attribute.name}")
             # Choices Validation
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.choices:
+                if not len(lead_attribute.value):
+                    raise ValidationError(f"Invalid choices value '{lead_value}' for field {lead_attribute.name}")
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.boolean:
+                if not isinstance(lead_value, bool):
+                    raise ValidationError(f"Invalid boolean '{lead_value}' for field {lead_attribute.name}.")
 
 
 class LeadUserMap(TimeBaseModel):
