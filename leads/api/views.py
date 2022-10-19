@@ -43,7 +43,8 @@ class UserViewset(ModelViewSet):
 
     def get_permissions(self):
         user_permission_map = {
-            "update": UserPermission
+            "update": UserPermission,
+            'list': IsAuthenticated,
         }
         if self.action in user_permission_map:
             self.permission_classes = [user_permission_map.get(self.action)]

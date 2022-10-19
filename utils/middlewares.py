@@ -23,8 +23,8 @@ class AccountMiddleware(object):
         if getattr(request, 'account', None) and (not request.user.is_authenticated):
             JWTAuthentication().authenticate(request)
 
-        if getattr(request, 'account', None) and (not (request.user.is_authenticated and request.user.is_active)):
-            raise Http404(f"Invalid user {request.user}.")
+        if (not request.user) and (not request.user.is_active):
+            raise Http404(f"Invalid user {request.user}. Please verify.")
 
         request.member = (Member.objects
                           .filter(account=request.account)
