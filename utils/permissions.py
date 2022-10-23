@@ -44,4 +44,4 @@ class IsAccountMemberAdmin(IsAccountMember):
         if not request.account:
             return False
         return (super().has_permission(request, view) and
-                request.member.filter(role=Member.USER_ROLE.admin).exist())
+                request.member.role == Member.USER_ROLE.admin)

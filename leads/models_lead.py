@@ -21,6 +21,7 @@ class LeadAttribute(TimeBaseModel):
     )
 
     ATTRIBUTE_CHOICES = Choices(
+        ('boolean', 'Boolean'),
         ('choices', 'Choices'),
         ('email', 'Email'),
         ('integer', 'Integer'),
@@ -75,20 +76,34 @@ class Lead(TimeBaseModel):
                 except Exception as e:
                     e.message = f"Invalid email '{lead_value}' for field {lead_attribute.name}."
                     raise ValidationError(e.message)
+
             # String Validation
             if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.string:
                 if not isinstance(lead_value, str):
                     raise ValidationError(f"Invalid string '{lead_value}' for field {lead_attribute.name}.")
+
             # Integer Validation
             if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.integer:
                 if not isinstance(lead_value, int):
                     raise ValidationError(f"Invalid integer '{lead_value}' for field {lead_attribute.name}.")
+
             # Phone Number Validation
             if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.phone_number:
                 phone_num = phonenumbers.parse(lead_value)
                 if not phonenumbers.is_valid_number(phone_num):
                     raise ValidationError(f"Invalid phone number '{lead_value}' for field {lead_attribute.name}")
+
             # Choices Validation
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.choices:
+                if not isinstance(lead_attribute.value, list):
+                    raise ValidationError(f"Invalid choices '{lead_value}' for field {lead_attribute.name}.")
+
+                if not len(lead_attribute.value):
+                    raise ValidationError(f"Invalid choices value '{lead_value}' for field {lead_attribute.name}")
+
+            if lead_attribute.lead_type == LeadAttribute.ATTRIBUTE_CHOICES.boolean:
+                if not isinstance(lead_value, bool):
+                    raise ValidationError(f"Invalid boolean '{lead_value}' for field {lead_attribute.name}.")
 
 
 class LeadUserMap(TimeBaseModel):
