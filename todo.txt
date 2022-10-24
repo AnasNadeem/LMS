@@ -18,3 +18,6 @@ Scoreboard per member
 Send otp after registering an account
 Subdomain Middleware
 Fix get_permissions
+
+TODO:
+Add api for change_password in UserViewset. Also create test case for it.
