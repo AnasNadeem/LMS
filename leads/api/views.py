@@ -66,7 +66,7 @@ class UserViewset(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         user = User.objects.filter(email=serializer.data.get('email')).first()
-        resp_data, resp_status = send_or_verify_otp(user)
+        resp_data, resp_status = send_or_verify_otp(request, user)
         return response.Response(resp_data, status=resp_status)
 
     @action(detail=False, methods=['post'])
@@ -82,7 +82,7 @@ class UserViewset(ModelViewSet):
         if not authenticated:
             return response.Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
-        resp_data, resp_status = send_or_verify_otp(user)
+        resp_data, resp_status = send_or_verify_otp(request, user)
         return response.Response(resp_data, status=resp_status)
 
     @action(detail=False, methods=['post'])
@@ -93,7 +93,7 @@ class UserViewset(ModelViewSet):
         if not user:
             return response.Response({'error': 'User does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-        resp_data, resp_status = send_or_verify_otp(user, resent=True)
+        resp_data, resp_status = send_or_verify_otp(request, user, resent=True)
         return response.Response(resp_data, status=resp_status)
 
     @action(detail=False, methods=['post'])
@@ -125,7 +125,7 @@ class UserViewset(ModelViewSet):
         if not otp:
             return response.Response({'error': 'OTP cannot be blank.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        resp_data, resp_status = send_or_verify_otp(user, otp)
+        resp_data, resp_status = send_or_verify_otp(request, user, otp)
         return response.Response(resp_data, status=resp_status)
 
 

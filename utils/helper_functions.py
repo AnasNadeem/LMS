@@ -3,6 +3,7 @@ import jwt
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
+from django.contrib.auth import login
 
 from leads.api.serializers import UserSerializer
 from leads.models_user import UserOTP
@@ -10,7 +11,7 @@ from leads.models_user import UserOTP
 from rest_framework import status
 
 
-def send_or_verify_otp(user, otp=None, resent=False):
+def send_or_verify_otp(request, user, otp=None, resent=False):
     user_otp = UserOTP.objects.filter(user=user).first()
     if not user_otp:
         random_str = get_random_string(6)
@@ -34,6 +35,8 @@ def send_or_verify_otp(user, otp=None, resent=False):
         if not user.is_active:
             user.is_active = True
             user.save()
+
+        login(request, user)
         user_serializer_data = UserSerializer(user).data
         resp_data = {'user': user_serializer_data, 'token': auth_token}
         resp_status = status.HTTP_200_OK
@@ -52,6 +55,7 @@ def send_or_verify_otp(user, otp=None, resent=False):
         user.is_active = True
         user.save()
 
+        login(request, user)
         user_serializer_data = UserSerializer(user).data
         resp_data = {'user': user_serializer_data, 'token': auth_token}
         resp_status = status.HTTP_200_OK
