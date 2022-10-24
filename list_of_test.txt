@@ -1,26 +1,3 @@
-login:
-Login with incorrect mail
-Login with user email who doesn't set password
-Login with incorrect password
-Login with correct email and password
-
-login-by-token:
-Empty data
-Invalid token
-Correct token
-
-create-account:
-Empty data
-Invalid data
-Correct data
-
-forget-password:
-Empty data
-Invalid user email
-Correct data
-
-verify-otp:
-Empty data
-Invalid user email
-Invalid otp
-Correct otp
+In test_account:
+1. Check if other user can get, put, delete account
+2. Check if user of that account can put, delete
