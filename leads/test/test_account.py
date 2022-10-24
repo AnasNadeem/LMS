@@ -10,7 +10,7 @@ class TestAccount(APITestCase, ConstantMixin):
     ######################
 
     def test_get_list_without_auth(self):
-        account_resp = self.client.get(self.ACCOUNT_LIST_URL)
+        account_resp = self.client.get(self.ACCOUNT_URL)
         self.assertEqual(account_resp.status_code, 403)
 
     def test_get_list_with_auth(self):
@@ -27,7 +27,7 @@ class TestAccount(APITestCase, ConstantMixin):
         token = login_resp.json()['token']
         self.client.credentials(HTTP_AUTHORIZATION=token)
 
-        resp = self.client.get(self.ACCOUNT_LIST_URL)
+        resp = self.client.get(self.ACCOUNT_URL)
         self.assertEqual(resp.status_code, 200)
 
     ######################
@@ -35,7 +35,7 @@ class TestAccount(APITestCase, ConstantMixin):
     ######################
 
     def test_post_without_auth(self):
-        account_resp = self.client.post(self.ACCOUNT_LIST_URL)
+        account_resp = self.client.post(self.ACCOUNT_URL)
         self.assertEqual(account_resp.status_code, 403)
 
     def test_post_with_auth(self):
@@ -58,7 +58,7 @@ class TestAccount(APITestCase, ConstantMixin):
                             'xyz': 'Its about xyz'  # invalid category
                         }
                         }
-        resp = self.client.post(self.ACCOUNT_LIST_URL, account_data)
+        resp = self.client.post(self.ACCOUNT_URL, account_data)
         self.assertEqual(resp.status_code, 400)
 
         # Correct config
@@ -67,9 +67,9 @@ class TestAccount(APITestCase, ConstantMixin):
                             "it": "Its about IT"
                         }
                         }
-        resp = self.client.post(self.ACCOUNT_LIST_URL, account_data, format='json')
+        resp = self.client.post(self.ACCOUNT_URL, account_data, format='json')
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(Account.objects.all().count(), 1)
 
-        account_resp = self.client.get(self.ACCOUNT_LIST_URL)
+        account_resp = self.client.get(self.ACCOUNT_URL)
         self.assertEqual(len(account_resp.json()), 1)

@@ -10,4 +10,4 @@ class ConstantMixin(object):
     USER_DATA = {'email': DEFAULT_EMAIL, 'password': 'Test@123'}
 
     # AccountViewset URLs
-    ACCOUNT_LIST_URL = BASE_URL + '/api/account'
+    ACCOUNT_URL = BASE_URL + '/api/account'
