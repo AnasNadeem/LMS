@@ -23,7 +23,7 @@ class AccountMiddleware(object):
         if getattr(request, 'account', None) and (not request.user.is_authenticated):
             JWTAuthentication().authenticate(request)
 
-        if (not request.user) and (not request.user.is_active):
+        if not request.user:
             raise Http404(f"Invalid user {request.user}. Please verify.")
 
         request.member = (Member.objects

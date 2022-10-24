@@ -181,11 +181,10 @@ class AccountViewset(ModelViewSet):
         account_member_serializer = AccountwithMemberSerializer(account)
         return response.Response(account_member_serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['get'])
-    def download_csv(self, request, pk=None):
-        account = self.get_object()
+    @action(detail=False, methods=['get'])
+    def download_csv(self, request):
+        account = request.account
         lead_attrs = (account.leadattribute_set
-                      .filter(lead_type=LeadAttribute.LEAD_CHOICES.main)
                       .values_list('slug', flat=True)
                       )
         if not lead_attrs:
@@ -195,7 +194,7 @@ class AccountViewset(ModelViewSet):
 
         csv_response = HttpResponse(content_type='text/csv')
 
-        filename = f'{account.name}.csv'
+        filename = f'{account.subdomain}.csv'
         csv_response['Content-Disposition'] = f'attachment; filename={filename}'
         writer = csv.DictWriter(csv_response, fieldnames=lead_attrs)
         writer.writeheader()
