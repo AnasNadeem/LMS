@@ -1,11 +1,9 @@
+from leads.models_user import User, UserOTP
+from .test_base import ConstantMixin
 from rest_framework.test import APITestCase
-from leads.models_user import User
 
 
-class TestUser(APITestCase):
-    BASE_URL = 'http://localhost:8000'
-    REGISTER_URL = BASE_URL + '/api/user'
-    LOGIN_URL = BASE_URL + '/api/user/login'
+class TestUser(APITestCase, ConstantMixin):
 
     ######################
     # ---- REGISTER ---- #
@@ -60,6 +58,33 @@ class TestUser(APITestCase):
     def test_login_correct_config(self):
         # Login with correct data
         data = {'email': 'test@gmail.com', 'password': 'Test@123'}
-        User.objects.create_user(**data)
+        self.client.post(self.REGISTER_URL, data)
         resp = self.client.post(self.LOGIN_URL, data)
         self.assertEqual(resp.status_code, 200)
+
+    ######################
+    # ---- USER LIST ---- #
+    ######################
+
+    def test_get_user_list_without_auth(self):
+        # Request without authentication
+        resp = self.client.get(self.USER_LIST_URL)
+        self.assertEqual(resp.status_code, 403)
+
+    def test_get_user_list_with_auth(self):
+        # Register
+        self.client.post(self.REGISTER_URL, self.USER_DATA)
+
+        # UserOTP
+        user_otp = UserOTP.objects.all().first()
+        user_otp.is_verified = True
+        user_otp.save()
+
+        # Login
+        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
+        token = login_resp.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION=token)
+
+        resp = self.client.get(self.USER_LIST_URL)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(len(resp.json()), 1)
