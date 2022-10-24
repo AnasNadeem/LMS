@@ -45,3 +45,10 @@ class IsAccountMemberAdmin(IsAccountMember):
             return False
         return (super().has_permission(request, view) and
                 request.member.role == Member.USER_ROLE.admin)
+
+
+class LeadAttributePermission(IsAccountMemberAdmin):
+
+    def has_object_permission(self, request, view, obj):
+        super().has_object_permission(request, view, obj)
+        return obj.account.pk == request.account.pk
