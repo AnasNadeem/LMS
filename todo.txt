@@ -1,5 +1,4 @@
 Override post of MemberViewset: Send mail to member that you have been invited.
-Download csv lead structure
 Upload/Create Lead via csv
 Assign lead to member/LeadUserMap CRUD
 Lead Pagination

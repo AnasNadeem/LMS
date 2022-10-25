@@ -1,5 +1,6 @@
 import csv
 import jwt
+import pandas as pd
 
 from django.conf import settings
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
@@ -138,6 +139,7 @@ class AccountViewset(ModelViewSet):
         account_permission_map = {
             "create": IsAuthenticated,
             "download_csv": IsAccountMemberAdmin,
+            "upload_via_csv": IsAccountMemberAdmin,
             "list": IsAuthenticated,
             "retrieve": IsAuthenticated,
             "update": IsAccountMemberAdmin,
@@ -199,6 +201,17 @@ class AccountViewset(ModelViewSet):
         writer = csv.DictWriter(csv_response, fieldnames=lead_attrs)
         writer.writeheader()
         return csv_response
+
+    @action(detail=False, methods=['post'])
+    def upload_via_csv(self, request):
+        account = request.account
+        file = request.data.get('file')
+        if not file:
+            return response.Response({'error': 'File required'}, status=status.HTTP_400_BAD_REQUEST)
+        # Get & Read File
+        # Go through Header and validate if its lead attribute
+        # In transaction atomic save the lead
+        # Store error messages and show in last
 
 
 class MemberViewset(ModelViewSet):
