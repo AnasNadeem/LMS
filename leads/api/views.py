@@ -4,6 +4,7 @@ import pandas as pd
 
 from django.conf import settings
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.db import transaction
 # from django.db.models.query import Q
 from django.http import HttpResponse
 
@@ -208,9 +209,22 @@ class AccountViewset(ModelViewSet):
         file = request.data.get('file')
         if not file:
             return response.Response({'error': 'File required'}, status=status.HTTP_400_BAD_REQUEST)
-        # Get & Read File
-        # Go through Header and validate if its lead attribute
+
+        df = pd.read_csv(file)
+        error_list = []
+        lead_attrs = account.leadattribute_set.all()
+        lead_attrs_slug = lead_attrs.values('slug')
+
+        for lead_column in df.columns:
+            if lead_column not in lead_attrs_slug:
+                error = f"{lead_column} is invalid lead attribute. Download csv for attributes."
+                error_list.append(error)
+        if error_list:
+            return response.Response({'error': error_list}, status=status.HTTP_400_BAD_REQUEST)
+
         # In transaction atomic save the lead
+        with transaction.atomic():
+            pass
         # Store error messages and show in last
 
 
