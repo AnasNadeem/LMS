@@ -222,10 +222,20 @@ class AccountViewset(ModelViewSet):
         if error_list:
             return response.Response({'error': error_list}, status=status.HTTP_400_BAD_REQUEST)
 
-        # In transaction atomic save the lead
         with transaction.atomic():
-            pass
-        # Store error messages and show in last
+            for index, row in df.iterrows():
+                # all_data = {slug: row[slug] for slug in df.columns}
+                lead_data = {}
+                for slug in df.columns:
+                    lead_attr = lead_attrs.filter(slug=slug).first()
+                    lead_data[lead_attr.lead_type] = row[slug]
+
+                lead = Lead()
+                lead.account = account
+                lead.data = lead_data
+                lead.save()
+
+        return response.Response({}, status=status.HTTP_201_CREATED)
 
 
 class MemberViewset(ModelViewSet):
