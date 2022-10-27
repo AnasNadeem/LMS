@@ -73,3 +73,65 @@ class TestAccount(APITestCase, ConstantMixin):
 
         account_resp = self.client.get(self.ACCOUNT_URL)
         self.assertEqual(len(account_resp.json()), 1)
+
+    def test_auth_user_create_account(self):
+        # Register
+        self.client.post(self.REGISTER_URL, self.USER_DATA)
+
+        # UserOTP
+        user_otp = UserOTP.objects.all().first()
+        user_otp.is_verified = True
+        user_otp.save()
+
+        # Login
+        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
+        token = login_resp.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION=token)
+
+        # POST - User A
+        account_data = {
+            "name": "abc",
+            "business_desc": {
+                "it": "its about IT"
+            }
+        }
+
+        account_resp = self.client.post(self.ACCOUNT_URL, account_data, format="json")
+        self.assertEqual(account_resp.status_code, 201)
+        self.assertEqual(Account.objects.all().count(), 1)
+
+        # GET/<pk> - By User A i.e., Admin
+        account_resp = self.client.get(f"{self.ACCOUNT_URL}/{account_resp.json()['id']}", account_data, format="json")
+        self.assertEqual(account_resp.status_code, 200)
+
+        # PUT - By User A i.e., Admin
+        account_data['name'] = 'test'
+        account_resp_json = account_resp.json()
+        account_url = f"{self.METHOD}{account_resp.json()['subdomain']}.{self.DOMAIN_URL}{self.BASE_ACCOUNT_URL}"
+        put_account_url = f"{account_url}/{account_resp_json['id']}"
+        updated_account_resp = self.client.put(put_account_url, data=account_data)
+        self.assertEqual(updated_account_resp.status_code, 200)
+        self.assertEqual(updated_account_resp.json()['name'], 'test')
+
+        # register second user
+        self.client.post(self.REGISTER_URL, self.USER2_DATA)
+        print(self.USER2_DATA)
+
+        # User OTP
+        user_otp = UserOTP.objects.filter(is_verified=False).first()
+        user_otp.is_verified = True
+        user_otp.save()
+
+        # logging in user b
+        login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
+        token = login_resp.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION=token)
+
+        account_data = {
+            "name": "abc update",
+            "business_desc": {
+                "it": "its about IT update"
+            }
+        }
+        resp = self.client.put('/api/account/1', data=account_data)
+        self.assertEqual(resp.status_code, 403)
