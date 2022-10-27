@@ -2,7 +2,9 @@
 class ConstantMixin(object):
     DEFAULT_EMAIL = 'test@gmail.com'
     DEFAULT_EMAIL2 = "test2@gmail.com"
-    BASE_URL = 'http://localhost:8000'
+    METHOD = 'http://'
+    DOMAIN_URL = 'localhost:8000'
+    BASE_URL = METHOD + DOMAIN_URL
 
     # UserViewset URLs
     REGISTER_URL = BASE_URL + '/api/user'
@@ -12,4 +14,5 @@ class ConstantMixin(object):
     USER2_DATA = {'email': DEFAULT_EMAIL2, 'password': 'Test@1234'}
 
     # AccountViewset URLs
-    ACCOUNT_URL = BASE_URL + '/api/account'
+    BASE_ACCOUNT_URL = '/api/account'
+    ACCOUNT_URL = BASE_URL + BASE_ACCOUNT_URL

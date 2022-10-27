@@ -159,9 +159,7 @@ class AccountViewset(ModelViewSet):
     def get_queryset(self):
         if not self.request.user.is_authenticated:
             return []
-        members = self.request.user.member_set.all()
-        accounts = [member.account for member in members]
-        return accounts
+        return super().get_queryset()
 
     def create(self, request, *args, **kwargs):
         data = request.data

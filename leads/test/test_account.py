@@ -1,7 +1,6 @@
 from leads.models_user import Account, UserOTP
 from .test_base import ConstantMixin
 from rest_framework.test import APITestCase
-from django.urls import reverse
 
 
 class TestAccount(APITestCase, ConstantMixin):
@@ -89,7 +88,7 @@ class TestAccount(APITestCase, ConstantMixin):
         token = login_resp.json()['token']
         self.client.credentials(HTTP_AUTHORIZATION=token)
 
-        # Account Data
+        # POST - User A
         account_data = {
             "name": "abc",
             "business_desc": {
@@ -97,19 +96,23 @@ class TestAccount(APITestCase, ConstantMixin):
             }
         }
 
-        account_resp = self.client.post(self.ACCOUNT_URL, account_data, format="json").json()
+        account_resp = self.client.post(self.ACCOUNT_URL, account_data, format="json")
         self.assertEqual(account_resp.status_code, 201)
         self.assertEqual(Account.objects.all().count(), 1)
 
-        # User updating his data  update data
+        # GET/<pk> - By User A i.e., Admin
+        account_resp = self.client.get(f"{self.ACCOUNT_URL}/{account_resp.json()['id']}", account_data, format="json")
+        self.assertEqual(account_resp.status_code, 200)
+
+        # PUT - By User A i.e., Admin
         account_data2 = {
             "name": "abc update",
             "business_desc": {
                 "it": "its about it updated"
             }
         }
-        # user A updating his account
-        resp = self.client.put(f"/api/account/{account_resp['id']}", data=account_data2)
+        # account_url = f"{self.METHOD}{account_resp.json()['subdomain']}{self.DOMAIN_URL}{self.BASE_ACCOUNT_URL}"
+        resp = self.client.put(f"{self.ACCOUNT_URL}/{account_resp.json()['id']}", data=account_data2)
         self.assertEqual(resp.status_code, 200)
 
         # register second user
