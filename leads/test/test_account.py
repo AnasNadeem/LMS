@@ -113,7 +113,7 @@ class TestAccount(APITestCase, ConstantMixin):
                 "it":"its about it updated"
             }
         }
-        # user a updating his account 
+        # user A updating his account 
         resp = self.client.put("/api/account/1", data=account_data2)
 
         # print(resp.data)
@@ -126,11 +126,11 @@ class TestAccount(APITestCase, ConstantMixin):
 
         # User2OTP
         user_otp = UserOTP.objects.get(id=2)
-        print(user_otp)
+        # print(user_otp)
         user_otp.is_verified = True 
         user_otp.save()
-        print(user_otp)
-
+        # print(user_otp)
+        # logging in user b
         login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
         token = login_resp.json()['token']
         print(token)
