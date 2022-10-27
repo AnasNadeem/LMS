@@ -105,15 +105,13 @@ class TestAccount(APITestCase, ConstantMixin):
         self.assertEqual(account_resp.status_code, 200)
 
         # PUT - By User A i.e., Admin
-        account_data2 = {
-            "name": "abc update",
-            "business_desc": {
-                "it": "its about it updated"
-            }
-        }
-        # account_url = f"{self.METHOD}{account_resp.json()['subdomain']}{self.DOMAIN_URL}{self.BASE_ACCOUNT_URL}"
-        resp = self.client.put(f"{self.ACCOUNT_URL}/{account_resp.json()['id']}", data=account_data2)
-        self.assertEqual(resp.status_code, 200)
+        account_data['name'] = 'test'
+        account_resp_json = account_resp.json()
+        account_url = f"{self.METHOD}{account_resp.json()['subdomain']}.{self.DOMAIN_URL}{self.BASE_ACCOUNT_URL}"
+        put_account_url = f"{account_url}/{account_resp_json['id']}"
+        updated_account_resp = self.client.put(put_account_url, data=account_data)
+        self.assertEqual(updated_account_resp.status_code, 200)
+        self.assertEqual(updated_account_resp.json()['name'], 'test')
 
         # register second user
         self.client.post(self.REGISTER_URL, self.USER2_DATA)
