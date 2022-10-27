@@ -75,74 +75,62 @@ class TestAccount(APITestCase, ConstantMixin):
         account_resp = self.client.get(self.ACCOUNT_URL)
         self.assertEqual(len(account_resp.json()), 1)
 
-    
     def test_auth_user_create_account(self):
-        #register user 
+        # Register
         self.client.post(self.REGISTER_URL, self.USER_DATA)
-        
-        # UserOTP 
+
+        # UserOTP
         user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True 
+        user_otp.is_verified = True
         user_otp.save()
 
-      
         # Login
-       
         login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
         token = login_resp.json()['token']
         self.client.credentials(HTTP_AUTHORIZATION=token)
-        
-        
 
+        # Account Data
         account_data = {
-            "name":"abc",
-            "business_desc":{
-                "it":"its about IT"
+            "name": "abc",
+            "business_desc": {
+                "it": "its about IT"
             }
-        
         }
 
-        resp = self.client.post(self.ACCOUNT_URL, account_data, format="json")
-        self.assertEqual(resp.status_code, 201)
+        account_resp = self.client.post(self.ACCOUNT_URL, account_data, format="json").json()
+        self.assertEqual(account_resp.status_code, 201)
         self.assertEqual(Account.objects.all().count(), 1)
 
-        # User updating his data  update data 
+        # User updating his data  update data
         account_data2 = {
-            "name":"abc update", 
-            "business_desc":{
-                "it":"its about it updated"
+            "name": "abc update",
+            "business_desc": {
+                "it": "its about it updated"
             }
         }
-        # user A updating his account 
-        resp = self.client.put("/api/account/1", data=account_data2)
-
-        # print(resp.data)
-        # this is soppose to return 200 but returning 403
+        # user A updating his account
+        resp = self.client.put(f"/api/account/{account_resp['id']}", data=account_data2)
         self.assertEqual(resp.status_code, 200)
 
-        # register second user 
+        # register second user
         self.client.post(self.REGISTER_URL, self.USER2_DATA)
         print(self.USER2_DATA)
 
-        # User2OTP
-        user_otp = UserOTP.objects.get(id=2)
-        # print(user_otp)
-        user_otp.is_verified = True 
+        # User OTP
+        user_otp = UserOTP.objects.filter(is_verified=False).first()
+        user_otp.is_verified = True
         user_otp.save()
-        # print(user_otp)
+
         # logging in user b
         login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
         token = login_resp.json()['token']
-        print(token)
         self.client.credentials(HTTP_AUTHORIZATION=token)
 
         account_data = {
-            "name":"abc update",
-            "business_desc":{
-                "it":"its about IT update"
+            "name": "abc update",
+            "business_desc": {
+                "it": "its about IT update"
             }
         }
-        resp  = self.client.put('/api/account/1', data=account_data)
+        resp = self.client.put('/api/account/1', data=account_data)
         self.assertEqual(resp.status_code, 403)
-       
-
