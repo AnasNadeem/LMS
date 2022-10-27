@@ -113,35 +113,36 @@ class TestAccount(APITestCase, ConstantMixin):
                 "it":"its about it updated"
             }
         }
+        # user a updating his account 
         resp = self.client.put("/api/account/1", data=account_data2)
-        print(resp.data)
-        # below is the error message i get when i try to print the about "print(resp.data)"
-        # {'detail': ErrorDetail(string='You do not have permission to perform this action.', code='permission_denied')}
-        # self.assertEqual(resp.status_code, 200)
+
+        # print(resp.data)
+        # this is soppose to return 200 but returning 403
+        self.assertEqual(resp.status_code, 200)
 
         # register second user 
-        # self.client.post(self.REGISTER_URL, self.USER2_DATA)
-        # print(self.USER2_DATA)
+        self.client.post(self.REGISTER_URL, self.USER2_DATA)
+        print(self.USER2_DATA)
 
-        # # User2OTP
-        # user_otp = UserOTP.objects.get(id=2)
-        # print(user_otp)
-        # user_otp.is_verified = True 
-        # user_otp.save()
-        # print(user_otp)
+        # User2OTP
+        user_otp = UserOTP.objects.get(id=2)
+        print(user_otp)
+        user_otp.is_verified = True 
+        user_otp.save()
+        print(user_otp)
 
-        # login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
-        # token = login_resp.json()['token']
-        # print(token)
-        # self.client.credentials(HTTP_AUTHORIZATION=token)
+        login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
+        token = login_resp.json()['token']
+        print(token)
+        self.client.credentials(HTTP_AUTHORIZATION=token)
 
-        # account_data = {
-        #     "name":"abc update",
-        #     "business_desc":{
-        #         "it":"its about IT update"
-        #     }
-        # }
-        # resp  = self.client.put('/api/account/1', data=account_data)
-        # self.assertEqual(resp.status_code, 403)
+        account_data = {
+            "name":"abc update",
+            "business_desc":{
+                "it":"its about IT update"
+            }
+        }
+        resp  = self.client.put('/api/account/1', data=account_data)
+        self.assertEqual(resp.status_code, 403)
        
 
