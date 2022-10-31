@@ -1,16 +1,10 @@
-from leads.models_user import User, UserOTP
-from leads.models_lead import Lead
+from leads.models_user import UserOTP
 from .test_base import ConstantMixin
 from rest_framework.test import APITestCase
 
 
 class TestLeadAttribute(APITestCase, ConstantMixin):
-    def setUp(self):
-        self.email = "test@test.com"
-        self.password = "password"
-        self.user = User.objects.create_user(email=self.email, password=self.password)
 
-    # test un authorize user
     def test_get_lead_attribute_without_auth(self):
         lead_attr_resp = self.client.get(self.LEAD_ATTR_URL)
         self.assertEqual(lead_attr_resp.status_code, 403)
@@ -34,3 +28,5 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
         # this is return 403 insted of 200
         lead_attr_resp = self.client.get(self.LEAD_ATTR_URL)
         self.assertEqual(lead_attr_resp.status_code, 200)
+
+        # POST, PUT and DELETE
