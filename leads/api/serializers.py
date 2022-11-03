@@ -1,6 +1,10 @@
 from leads.models_user import Account, Member, User
 from leads.models_lead import Lead, LeadAttribute
 from rest_framework import serializers
+from django.contrib.auth import password_validation
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 ######################
 # ---- USER ---- #
@@ -68,6 +72,34 @@ class UserEmailSerializer(serializers.ModelSerializer):
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField(max_length=250)
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(max_length=128, write_only=True, required=True)
+    password = serializers.CharField(max_length=128, write_only=True, required=True)
+    confirm_password = serializers.CharField(max_length=128, write_only=True, required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError(
+            _("Your old password was entered Incorrectly. Please enter it again. ")
+            )
+        return value
+
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError({'Confirm_password': _("The password fields didn't match.")})
+        password_validation.validate_password(data['password'], self.context['request'].user)
+        return data
+
+    def save(self, **kwargs):
+        password = self.validated_data['password']
+        user = self.context['request'].user
+        user.set_password(password)
+        user.save()
+        return user
+
 
 ######################
 # ---- ACCOUNT ---- #
