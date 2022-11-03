@@ -21,6 +21,7 @@ class ConstantMixin(object):
     USER_LIST_URL = BASE_URL + "/api/user"
     USER_DATA = {"email": DEFAULT_EMAIL, "password": "Test@123"}
     USER2_DATA = {"email": DEFAULT_EMAIL2, "password": "Test@1234"}
+    PASSWORD_CHANGE_URL = BASE_URL + "/api/user/password_change"
 
     # AccountViewset URLs
     BASE_ACCOUNT_URL = "/api/account"
