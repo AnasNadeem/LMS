@@ -89,7 +89,7 @@ class TestUser(APITestCase, ConstantMixin):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()), 1)
 
-
+          # test with wrong old password return 400
     def test_change_password_wrong_old_password(self):
         # Register User
         self.client.post(self.REGISTER_URL, self.USER_DATA)
@@ -110,7 +110,7 @@ class TestUser(APITestCase, ConstantMixin):
 
         self.assertEqual(resp_password_change.status_code, 400)
 
-
+        # testing with user with miss match password return 400
     def test_change_password_wrong_new_password_dont_match(self):
         # Register User
         self.client.post(self.REGISTER_URL, self.USER_DATA)
@@ -131,7 +131,7 @@ class TestUser(APITestCase, ConstantMixin):
 
         self.assertEqual(resp_password_change.status_code, 400)
 
-
+     # test user with correct credentials 201
     def test_change_password(self):
         # Register User
         self.client.post(self.REGISTER_URL, self.USER_DATA)
