@@ -33,6 +33,7 @@ from .serializers import (AccountSerializer,
                           TokenSerializer,
                           UserSerializer,
                           UserEmailSerializer,
+                          ChangePasswordSerializer,
                           )
 from leads.models_user import Account, Member, User
 from leads.models_lead import Lead, LeadAttribute
@@ -59,6 +60,7 @@ class UserViewset(ModelViewSet):
             "forget_password": UserEmailSerializer,
             "verify_otp": OtpSerializer,
             "token_login": TokenSerializer,
+            "password_change": ChangePasswordSerializer,
         }
         return user_serializer_map.get(self.action.lower(), UserSerializer)
 
@@ -129,6 +131,14 @@ class UserViewset(ModelViewSet):
 
         resp_data, resp_status = send_or_verify_otp(request, user, otp)
         return response.Response(resp_data, status=resp_status)
+
+    @action(detail=False, methods=['put'])
+    def password_change(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return response.Response("password changed successfully ", status=status.HTTP_201_CREATED)
+        return response.Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AccountViewset(ModelViewSet):
