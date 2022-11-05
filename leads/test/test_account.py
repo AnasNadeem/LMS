@@ -1,9 +1,9 @@
 from leads.models_user import Account, UserOTP
-from .test_base import ConstantMixin
-from rest_framework.test import APITestCase
+from .test_base import ConstantMixin, BaseTestCase
+# from rest_framework.test import APITestCase
 
 
-class TestAccount(APITestCase, ConstantMixin):
+class TestAccount(BaseTestCase, ConstantMixin):
 
     ######################
     # ---- GET ---- #
@@ -98,15 +98,14 @@ class TestAccount(APITestCase, ConstantMixin):
         )
         self.assertEqual(account_resp.status_code, 200)
 
-        # PUT - By User A i.e., Admin
+        # # PUT - By User A i.e., Admin
         # account_data['name'] = 'test'
         # account_resp_json = account_resp.json()
-        # account_url = f"{self.METHOD}{account_resp.json()['subdomain']}.{self.DOMAIN_URL}{self.BASE_ACCOUNT_URL}"
-        # put_account_url = f"{account_url}/{account_resp_json['id']}"
+        # put_account_url = f"{self.ACCOUNT_SUBDOMIN_URL}/{account_resp_json['id']}"
         # updated_account_resp = self.client.put(put_account_url, data=account_data)
         # self.assertEqual(updated_account_resp.status_code, 200)
         # self.assertEqual(updated_account_resp.json()['name'], 'test')
-        #
+
         # # register second user
         # self.client.post(self.REGISTER_URL, self.USER2_DATA)
         # print(self.USER2_DATA)
