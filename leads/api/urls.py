@@ -3,6 +3,7 @@ from .views import (
     MemberViewset,
     LeadViewset,
     LeadAttributeViewset,
+    LeadUserMapViewset,
     UserViewset,
 )
 from rest_framework import routers
@@ -14,6 +15,7 @@ router.register(r"account", AccountViewset, basename="account")
 router.register(r"member", MemberViewset, basename="member")
 router.register(r"lead", LeadViewset, basename="lead")
 router.register(r"leadattribute", LeadAttributeViewset, basename="leadattribute")
+router.register(r"leadusermap", LeadUserMapViewset, basename="leadusermap")
 router.register(r"user", UserViewset, basename="user")
 
 urlpatterns = []

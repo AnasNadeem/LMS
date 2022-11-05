@@ -36,7 +36,7 @@ from .serializers import (AccountSerializer,
                           ChangePasswordSerializer,
                           )
 from leads.models_user import Account, Member, User
-from leads.models_lead import Lead, LeadAttribute
+from leads.models_lead import Lead, LeadAttribute, LeadUserMap
 
 
 class UserViewset(ModelViewSet):
@@ -337,3 +337,9 @@ class LeadAttributeViewset(ModelViewSet):
     #     members = self.request.user.member_set.all()
     #     accounts = [member.account for member in members]
     #     return accounts
+
+
+class LeadUserMapViewset(ModelViewSet):
+    queryset = LeadUserMap.objects.all()
+    serializer_class = LeadAttributeSerializer
+    permission_classes = (IsAccountMemberAdmin,)

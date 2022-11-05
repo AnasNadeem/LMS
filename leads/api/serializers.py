@@ -1,9 +1,7 @@
 from leads.models_user import Account, Member, User
-from leads.models_lead import Lead, LeadAttribute
+from leads.models_lead import Lead, LeadAttribute, LeadUserMap
 from rest_framework import serializers
 from django.contrib.auth import password_validation
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 ######################
@@ -82,9 +80,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_old_password(self, value):
         user = self.context['request'].user
         if not user.check_password(value):
-            raise serializers.ValidationError(
-            _("Your old password was entered Incorrectly. Please enter it again. ")
-            )
+            raise serializers.ValidationError("Your old password was entered Incorrectly. Please enter it again. ")
         return value
 
     def validate(self, data):
@@ -171,4 +167,17 @@ class LeadAttributeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LeadAttribute
+        fields = '__all__'
+
+######################
+# ---- LEADUSERMAP ---- #
+######################
+
+
+class LeadUserMapSerializer(serializers.ModelSerializer):
+    member = MemberSerializer()
+    leads = LeadSerializer()
+
+    class Meta:
+        model = LeadUserMap
         fields = '__all__'
