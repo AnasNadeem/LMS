@@ -1,21 +1,14 @@
+Send report / Save report
+For Invite member:
+    1. Call on Register api
+    2. Call On MemberViewset via post
+Whatsapp Feature
+
+TODO:
 Override post of MemberViewset: Send mail to member that you have been invited.
-Upload/Create Lead via csv
 Assign lead to member/LeadUserMap CRUD
 Lead Pagination
 Lead Filtering
 Lead Report By Mid/Track data
     1. self
     2. By Member (For Admin)
-Send report / Save report
-Unittest
-Fixtures
-For Invite member:
-    1. Call on Register api
-    2. Call On MemberViewset via post
-Whatsapp Feature
-Scoreboard per member
-Send otp after registering an account
-Fix get_permissions
-
-TODO:
-Add api for change_password in UserViewset. Also create test case for it.
