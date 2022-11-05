@@ -1,4 +1,3 @@
-from django.contrib.sites.models import Site
 from django.test import TestCase
 
 from rest_framework.test import APIClient
@@ -26,6 +25,7 @@ class ConstantMixin(object):
     # AccountViewset URLs
     BASE_ACCOUNT_URL = "/api/account"
     ACCOUNT_URL = BASE_URL + BASE_ACCOUNT_URL
+    ACCOUNT_SUBDOMIN_URL = SUBDOMAIN_BASE_URL + BASE_ACCOUNT_URL
 
     # LeadAttributeViewSet URLs
     BASE_LEAD_ATTR_URL = "/api/leadattribute"
@@ -37,24 +37,19 @@ class ConstantMixin(object):
     ACCOUNT_SUBDOMAIN_URL = SUBDOMAIN_BASE_URL + BASE_ACCOUNT_URL
 
 
-class BaseTestCase(TestCase):
-    def setUp(self):
-        super(BaseTestCase, self).setUp()
-        self.client_class = BaseApiClient()
-
-
 class BaseApiClient(APIClient):
 
     def __init__(self, *args, **kwargs):
         super(BaseApiClient, self).__init__(*args, **kwargs)
-        self.site_domain = Site.objects.get_current().domain
-        self.account_url = "{}.{}".format("test", self.site_domain)
+        self.site_domain = "localhost:8000"
+        self.account_url = "{}.{}".format("abc", self.site_domain)
 
     def setup_account_url(self, subdomain):
         self.account_url = "{}.{}".format(subdomain, self.site_domain)
 
     def setup_host(self, url, kwargs):
-        kwargs["HTTP_HOST"] = self.account_url
+        if self.account_url in url:
+            kwargs["HTTP_HOST"] = self.account_url
 
     def get(self, url, *args, **kwargs):
         self.setup_host(url, kwargs)
@@ -75,3 +70,10 @@ class BaseApiClient(APIClient):
     def patch(self, url, *args, **kwargs):
         self.setup_host(url, kwargs)
         return super(BaseApiClient, self).patch(url, *args, **kwargs)
+
+
+class BaseTestCase(TestCase):
+    client_class = BaseApiClient
+
+    def setUp(self):
+        super(BaseTestCase, self).setUp()
