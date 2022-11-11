@@ -1,14 +1,11 @@
-Send report / Save report
-For Invite member:
-    1. Call on Register api
-    2. Call On MemberViewset via post
-Whatsapp Feature
+Send report [Later]
+Whatsapp Feature [On Hold]
 
 TODO:
-Override post of MemberViewset: Send mail to member that you have been invited.
-Assign lead to member/LeadUserMap CRUD
-Lead Pagination
-Lead Filtering
-Lead Report By Mid/Track data
+Override post of MemberViewset: Send mail to member that you have been invited. [Anas + Coffie]
+Add api 'set_password' in UserViewSet [Coffie]
+Assign lead to member/LeadUserMap CRUD [In Progress] [Anas]
+Lead Report By Mid/Track data [Anas]
     1. self
     2. By Member (For Admin)
+Save report [Client Side Integration]
