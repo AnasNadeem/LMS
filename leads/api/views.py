@@ -4,6 +4,7 @@ import pandas as pd
 
 from django.conf import settings
 from django.contrib.postgres.fields.jsonb import KeyTextTransform
+from django.core.validators import validate_email
 from django.db import transaction
 # from django.db.models.query import Q
 from django.http import HttpResponse
@@ -251,6 +252,12 @@ class MemberViewset(ModelViewSet):
     serializer_class = MemberSerializer
     permission_classes = (IsAccountMemberAdmin,)
 
+    def get_permissions(self):
+        member_permission_map = {
+            "invite_member": IsAccountMemberAdmin
+        }
+        self.permission_classes = [member_permission_map.get(self.action.lower(), IsAccountMemberAdmin)]
+
     def get_serializer_class(self):
         member_serializer_map = {
             "get": MemberWithUserSerializer,
@@ -268,6 +275,45 @@ class MemberViewset(ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=False, methods=['post'])
+    def invite_member(self, request):
+        account = request.account
+        data = request.data
+        email = data.get('email', '')
+        role = data.get('role', '')
+
+        if not email:
+            return response.Response({'error': 'File required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            validate_email(email)
+        except Exception as e:
+            e.message = f"Invalid email '{email}'"
+            return response.Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
+
+        if role and (role not in Member.USER_ROLE):
+            return response.Response({'error': 'Invalid role'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            user = User.objects.create_user(email=email)
+            member = Member()
+            member.account = account
+            member.user = user
+            member.role = role if role else Member.USER_ROLE.staff
+            member.save()
+            return response.Response({}, status=status.HTTP_201_CREATED)
+
+        all_member_emails = account.member_set.all().value_list('user__email', flat=True)
+        if user.email in all_member_emails:
+            return response.Response({'error': 'User is already in the account'}, status=status.HTTP_400_BAD_REQUEST)
+
+        member = Member()
+        member.account = account
+        member.user = user
+        member.role = role if role else Member.USER_ROLE.staff
+        member.save()
+        return response.Response({}, status=status.HTTP_201_CREATED)
 
 
 class LeadViewset(ModelViewSet):
