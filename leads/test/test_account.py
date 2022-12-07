@@ -54,14 +54,14 @@ class TestAccount(BaseTestCase, ConstantMixin):
 
         # Incorrect config
         account_data = {
-            "name": "abc",
+            "name": "anas",
             "business_desc": {"xyz": "Its about xyz"},  # invalid category
         }
         resp = self.client.post(self.ACCOUNT_URL, account_data)
         self.assertEqual(resp.status_code, 400)
 
         # Correct config
-        account_data = {"name": "abc", "business_desc": {"it": "Its about IT"}}
+        account_data = {"name": "anas", "business_desc": {"it": "Its about IT"}}
         resp = self.client.post(self.ACCOUNT_URL, account_data, format="json")
         self.assertEqual(resp.status_code, 201)
         self.assertEqual(Account.objects.all().count(), 1)
@@ -84,7 +84,7 @@ class TestAccount(BaseTestCase, ConstantMixin):
         self.client.credentials(HTTP_AUTHORIZATION=token)
 
         # POST - User A
-        account_data = {"name": "abc", "business_desc": {"it": "its about IT"}}
+        account_data = {"name": "anas", "business_desc": {"it": "its about IT"}}
 
         account_resp = self.client.post(self.ACCOUNT_URL, account_data, format="json")
         self.assertEqual(account_resp.status_code, 201)

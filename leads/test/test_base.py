@@ -10,7 +10,7 @@ class ConstantMixin(object):
     DOMAIN_URL = "localhost:8000"
     METHOD = "http://"
     DOMAIN_URL = "localhost:8000"
-    SUBDOMAIN_URL = "abc.localhost:8000"
+    SUBDOMAIN_URL = "anas.localhost:8000"
     BASE_URL = METHOD + DOMAIN_URL
     SUBDOMAIN_BASE_URL = METHOD + SUBDOMAIN_URL
 
@@ -42,7 +42,7 @@ class BaseApiClient(APIClient):
     def __init__(self, *args, **kwargs):
         super(BaseApiClient, self).__init__(*args, **kwargs)
         self.site_domain = "localhost:8000"
-        self.account_url = "{}.{}".format("abc", self.site_domain)
+        self.account_url = "{}.{}".format("anas", self.site_domain)
 
     def setup_account_url(self, subdomain):
         self.account_url = "{}.{}".format(subdomain, self.site_domain)
