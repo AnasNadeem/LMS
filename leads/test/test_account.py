@@ -1,9 +1,9 @@
 from leads.models_user import Account, UserOTP
-from .test_base import ConstantMixin, BaseTestCase
-# from rest_framework.test import APITestCase
+from .test_base import ConstantMixin
+from rest_framework.test import APITestCase
 
 
-class TestAccount(BaseTestCase, ConstantMixin):
+class TestAccount(APITestCase, ConstantMixin):
 
     ######################
     # ---- GET ---- #

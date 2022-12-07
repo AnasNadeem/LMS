@@ -77,10 +77,13 @@ class Member(TimeBaseModel):
         ('staff', 'Is Staff'),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    account = models.OneToOneField(Account, on_delete=models.CASCADE)
     role = models.CharField(max_length=50, choices=USER_ROLE, default=USER_ROLE.staff)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ('user', 'account',)
 
     def __str__(self):
         return f"{self.user.email} for {self.account.name}"
