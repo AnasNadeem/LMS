@@ -1,4 +1,4 @@
-from leads.models_user import Account, UserOTP
+from leads.models_user import Account
 from .test_base import ConstantMixin
 from rest_framework.test import APITestCase
 
@@ -14,19 +14,7 @@ class TestAccount(APITestCase, ConstantMixin):
         self.assertEqual(account_resp.status_code, 403)
 
     def test_get_list_with_auth(self):
-        # Register
-        self.client.post(self.REGISTER_URL, self.USER_DATA)
-
-        # UserOTP
-        user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # Login
-        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
-        token = login_resp.json()["token"]
-        self.client.credentials(HTTP_AUTHORIZATION=token)
-
+        self.register_user()
         resp = self.client.get(self.ACCOUNT_URL)
         self.assertEqual(resp.status_code, 200)
 
@@ -39,18 +27,7 @@ class TestAccount(APITestCase, ConstantMixin):
         self.assertEqual(account_resp.status_code, 403)
 
     def test_post_with_auth(self):
-        # Register
-        self.client.post(self.REGISTER_URL, self.USER_DATA)
-
-        # UserOTP
-        user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # Login
-        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
-        token = login_resp.json()["token"]
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        self.register_user()
 
         # Incorrect config
         account_data = {
@@ -70,18 +47,7 @@ class TestAccount(APITestCase, ConstantMixin):
         self.assertEqual(len(account_resp.json()), 1)
 
     def test_auth_user_create_account(self):
-        # Register
-        self.client.post(self.REGISTER_URL, self.USER_DATA)
-
-        # UserOTP
-        user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # Login
-        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
-        token = login_resp.json()["token"]
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        self.register_user()
 
         # POST - User A
         account_data = {"name": "anas", "business_desc": {"it": "its about IT"}}
@@ -106,18 +72,7 @@ class TestAccount(APITestCase, ConstantMixin):
         self.assertEqual(updated_account_resp.status_code, 200)
         self.assertEqual(updated_account_resp.json()['name'], 'test')
 
-        # Register second user
-        self.client.post(self.REGISTER_URL, self.USER2_DATA)
-
-        # User OTP
-        user_otp = UserOTP.objects.filter(is_verified=False).first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # Login User B
-        login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
-        token = login_resp.json()['token']
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        self.register_user(email=self.DEFAULT_EMAIL2)
 
         account_data = {
             "name": "abc update",

@@ -1,3 +1,5 @@
+from leads.models_user import UserOTP
+
 
 class ConstantMixin(object):
     DEFAULT_EMAIL = "test@gmail.com"
@@ -19,3 +21,18 @@ class ConstantMixin(object):
 
     # members
     MEMBER_ATTR_URL = "/api/member"
+
+    def register_user(self, email=DEFAULT_EMAIL):
+        user_data = {"email": email, "password": "Test@123"}
+        # Register
+        self.client.post(self.REGISTER_URL, user_data)
+
+        # UserOTP
+        user_otp = UserOTP.objects.filter(is_verified=False).first()
+        user_otp.is_verified = True
+        user_otp.save()
+
+        # Login
+        login_resp = self.client.post(self.LOGIN_URL, user_data)
+        token = login_resp.json()["token"]
+        self.client.credentials(HTTP_AUTHORIZATION=token)
