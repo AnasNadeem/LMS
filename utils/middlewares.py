@@ -12,47 +12,34 @@ class AccountMiddleware(object):
         self.get_response = get_response
 
     def __call__(self, request):
-        hostname = request.get_host()
+        request.account, request.member = None, None
 
-        request.account = self.get_account_from_hostname(hostname)
+        if not request.user.is_authenticated:
+            JWTAuthentication().authenticate(request)
+
+        if (not request.user) or (not request.user.is_authenticated):
+            response = self.get_response(request)
+            return response
+
+        hostname = request.get_host()
+        hostname_split_dot = hostname.split('.')
+        domain_split_dot = self.domain.split('.')
+
+        subdomain_split_dot = hostname_split_dot[:-len(domain_split_dot)]
+        if subdomain_split_dot:
+            subdomain = '.'.join(subdomain_split_dot)
+            request.account = Account.objects.filter(subdomain__iexact=subdomain).first()
+            request.member = request.user.member_set.all().first()
+        else:
+            request.member = Member.objects.filter(user=request.user).first() if request.user else None
+            request.account = request.member.account if request.member else None
+
         if not request.account:
             response = self.get_response(request)
             return response
 
-        request.member = None
-        if getattr(request, 'account', None) and (not request.user.is_authenticated):
-            JWTAuthentication().authenticate(request)
-
-        if not request.user:
-            raise Http404(f"Invalid user {request.user}. Please verify.")
-
-        request.member = (Member.objects
-                          .filter(account=request.account)
-                          .filter(user=request.user)
-                          .first()
-                          )
         if not getattr(request, 'member', None):
             raise Http404(f"Member {request.user.email} not found")
 
         response = self.get_response(request)
         return response
-
-    @classmethod
-    def get_account_from_hostname(cls, hostname):
-        hostname_split_dot = hostname.split('.')
-        domain_split_dot = cls.domain.split('.')
-
-        subdomain_split_dot = hostname_split_dot[:-len(domain_split_dot)]
-        if not subdomain_split_dot:
-            return None
-
-        subdomain = '.'.join(subdomain_split_dot)
-        account = Account.objects.filter(subdomain__iexact=subdomain).first()
-
-        if not account:
-            raise Http404(f"Account {subdomain} not found")
-
-        if not account.is_active:
-            raise Http404(f"Account {subdomain} has been disabled")
-
-        return account

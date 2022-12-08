@@ -124,7 +124,7 @@ class AccountwithMemberSerializer(serializers.ModelSerializer):
 
     def get_members(self, obj):
         account = Account.objects.get(pk=obj.id)
-        members = account.member_set.all()
+        members = Member.objects.filter(account=account).all()
         members_serializer = MemberWithUserSerializer(members, many=True)
         return members_serializer.data
 
