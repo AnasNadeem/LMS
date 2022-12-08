@@ -106,25 +106,24 @@ class TestAccount(APITestCase, ConstantMixin):
         self.assertEqual(updated_account_resp.status_code, 200)
         self.assertEqual(updated_account_resp.json()['name'], 'test')
 
-        # # register second user
-        # self.client.post(self.REGISTER_URL, self.USER2_DATA)
-        # print(self.USER2_DATA)
-        #
-        # # User OTP
-        # user_otp = UserOTP.objects.filter(is_verified=False).first()
-        # user_otp.is_verified = True
-        # user_otp.save()
-        #
-        # # logging in user b
-        # login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
-        # token = login_resp.json()['token']
-        # self.client.credentials(HTTP_AUTHORIZATION=token)
-        #
-        # account_data = {
-        #     "name": "abc update",
-        #     "business_desc": {
-        #         "it": "its about IT update"
-        #     }
-        # }
-        # resp = self.client.put('/api/account/1', data=account_data)
-        # self.assertEqual(resp.status_code, 403)
+        # Register second user
+        self.client.post(self.REGISTER_URL, self.USER2_DATA)
+
+        # User OTP
+        user_otp = UserOTP.objects.filter(is_verified=False).first()
+        user_otp.is_verified = True
+        user_otp.save()
+
+        # Login User B
+        login_resp = self.client.post(self.LOGIN_URL, self.USER2_DATA)
+        token = login_resp.json()['token']
+        self.client.credentials(HTTP_AUTHORIZATION=token)
+
+        account_data = {
+            "name": "abc update",
+            "business_desc": {
+                "it": "its about IT update"
+            }
+        }
+        resp = self.client.put(put_account_url, data=account_data)
+        self.assertEqual(resp.status_code, 403)
