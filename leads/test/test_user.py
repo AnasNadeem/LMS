@@ -1,4 +1,4 @@
-from leads.models_user import User, UserOTP
+from leads.models_user import User
 from .test_base import ConstantMixin
 from rest_framework.test import APITestCase
 
