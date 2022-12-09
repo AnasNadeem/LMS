@@ -15,6 +15,7 @@ class ConstantMixin(object):
 
     # AccountViewset URLs
     ACCOUNT_URL = "/api/account"
+    ACCOUNT_DATA = {"name": "anas", "business_desc": {"it": "its about IT"}}
 
     # LeadAttributeViewSet URLs
     LEAD_ATTR_URL = "/api/leadattribute"
@@ -36,3 +37,21 @@ class ConstantMixin(object):
         login_resp = self.client.post(self.LOGIN_URL, user_data)
         token = login_resp.json()["token"]
         self.client.credentials(HTTP_AUTHORIZATION=token)
+
+    def create_account(self):
+        resp = self.client.post(self.ACCOUNT_URL, self.ACCOUNT_DATA, format="json")
+        self.assertEqual(resp.status_code, 201)
+        return resp.json()
+
+    def create_leadattr(self, account_id, lead_type, name, attribute_type, value={}, verify=True):
+        leadattr_data = {
+            'account': account_id,
+            'lead_type': lead_type,
+            'name': name,
+            'attribute_type': attribute_type,
+            'value': value,
+        }
+        resp = self.client.post(self.LEAD_ATTR_URL, leadattr_data, format="json")
+        if verify:
+            self.assertEqual(resp.status_code, 201)
+        return resp

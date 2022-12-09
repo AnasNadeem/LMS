@@ -72,36 +72,14 @@ class TestUser(APITestCase, ConstantMixin):
         self.assertEqual(resp.status_code, 403)
 
     def test_get_user_list_with_auth(self):
-        # Register
-        self.client.post(self.REGISTER_URL, self.USER_DATA)
-
-        # UserOTP
-        user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # Login
-        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
-        token = login_resp.json()["token"]
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        self.register_user()
 
         resp = self.client.get(self.USER_LIST_URL)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(len(resp.json()), 1)
 
     def test_change_password_wrong_old_password(self):
-        # Register User
-        self.client.post(self.REGISTER_URL, self.USER_DATA)
-
-        # UserOTP
-        user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # login
-        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
-        token = login_resp.json()['token']
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        self.register_user()
 
         # get change password url
         data = {"old_password": "Test@1234", "password": "p1234567", "confirm_password": "p1234567"}
@@ -111,18 +89,7 @@ class TestUser(APITestCase, ConstantMixin):
 
         # testing with user with miss match password return 400
     def test_change_password_wrong_new_password_dont_match(self):
-        # Register User
-        self.client.post(self.REGISTER_URL, self.USER_DATA)
-
-        # UserOTP
-        user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # Login
-        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
-        token = login_resp.json()['token']
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        self.register_user()
 
         # get change password url
         data = {"old_password": "Test@123", "password": "p12345679", "confirm_password": "p1234567"}
@@ -131,18 +98,7 @@ class TestUser(APITestCase, ConstantMixin):
         self.assertEqual(resp_password_change.status_code, 400)
 
     def test_change_password(self):
-        # Register User
-        self.client.post(self.REGISTER_URL, self.USER_DATA)
-
-        # UserOTP
-        user_otp = UserOTP.objects.all().first()
-        user_otp.is_verified = True
-        user_otp.save()
-
-        # Login
-        login_resp = self.client.post(self.LOGIN_URL, self.USER_DATA)
-        token = login_resp.json()['token']
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        self.register_user()
 
         # get change password url
         data = {"old_password": "Test@123", "password": "p1234567", "confirm_password": "p1234567"}
