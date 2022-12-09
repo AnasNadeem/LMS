@@ -35,7 +35,7 @@ class LeadAttribute(TimeBaseModel):
     slug = AutoSlugField(custom_slugify, populate_from='name', unique_with=('account', 'lead_type'))
     attribute_type = models.CharField(max_length=50, choices=ATTRIBUTE_CHOICES)
     value = models.JSONField(default=dict, null=True, blank=True)
-    seq_no = models.PositiveIntegerField()
+    seq_no = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} {self.lead_type}"
