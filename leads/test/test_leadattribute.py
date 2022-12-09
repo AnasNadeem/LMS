@@ -71,3 +71,25 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
         self.assertEqual(updated_resp.status_code, 200)
         self.assertEqual(updated_resp.json()['name'], 'Name')
         self.assertEqual(updated_resp.json()['attribute_type'], LeadAttribute.ATTRIBUTE_CHOICES.string)
+
+    ######################
+    # ---- DELETE ---- #
+    ######################
+
+    def test_delete_leadattribute(self):
+        self.register_user()
+        account = self.create_account()
+
+        resp = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.main,
+            name='Email',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.email,
+        ).json()
+        self.assertEqual(resp['name'], 'Email')
+
+        delete_leadattr_url = f"{self.LEAD_ATTR_URL}/{resp['id']}"
+        updated_resp = self.client.delete(delete_leadattr_url)
+        self.assertEqual(updated_resp.status_code, 204)
+
+        self.assertEqual(LeadAttribute.objects.all().count(), 0)
