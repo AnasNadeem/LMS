@@ -73,6 +73,7 @@ class TestUser(APITestCase, ConstantMixin):
 
     def test_get_user_list_with_auth(self):
         self.register_user()
+        self.login_user()
 
         resp = self.client.get(self.USER_LIST_URL)
         self.assertEqual(resp.status_code, 200)
@@ -80,6 +81,7 @@ class TestUser(APITestCase, ConstantMixin):
 
     def test_change_password_wrong_old_password(self):
         self.register_user()
+        self.login_user()
 
         # get change password url
         data = {"old_password": "Test@1234", "password": "p1234567", "confirm_password": "p1234567"}
@@ -90,6 +92,7 @@ class TestUser(APITestCase, ConstantMixin):
         # testing with user with miss match password return 400
     def test_change_password_wrong_new_password_dont_match(self):
         self.register_user()
+        self.login_user()
 
         # get change password url
         data = {"old_password": "Test@123", "password": "p12345679", "confirm_password": "p1234567"}
@@ -99,6 +102,7 @@ class TestUser(APITestCase, ConstantMixin):
 
     def test_change_password(self):
         self.register_user()
+        self.login_user()
 
         # get change password url
         data = {"old_password": "Test@123", "password": "p1234567", "confirm_password": "p1234567"}

@@ -15,6 +15,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
 
     def test_get_list_with_auth(self):
         self.register_user()
+        self.login_user()
         self.create_account()
         leadattr_resp = self.client.get(self.LEADATTR_URL)
         self.assertEqual(leadattr_resp.status_code, 200)
@@ -26,6 +27,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
 
     def test_post_incorrect_config(self):
         self.register_user()
+        self.login_user()
         account = self.create_account()
         resp = self.create_leadattr(
             account_id=account['id'],
@@ -39,6 +41,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
 
     def test_post_correct_config(self):
         self.register_user()
+        self.login_user()
         account = self.create_account()
         resp = self.create_leadattr(
             account_id=account['id'],
@@ -54,6 +57,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
 
     def test_put_leadattribute_from_diff_user(self):
         self.register_user()
+        self.login_user()
         account = self.create_account()
 
         resp = self.create_leadattr(
@@ -65,6 +69,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
         self.assertEqual(resp['name'], 'Email')
 
         self.register_user(self.DEFAULT_EMAIL2)
+        self.login_user(self.DEFAULT_EMAIL2)
         resp['name'] = 'Name'
         resp['attribute_type'] = LeadAttribute.ATTRIBUTE_CHOICES.string
         put_leadattr_url = f"{self.LEADATTR_URL}/{resp['id']}"
@@ -78,6 +83,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
 
     def test_put_leadattribute(self):
         self.register_user()
+        self.login_user()
         account = self.create_account()
 
         resp = self.create_leadattr(
@@ -102,6 +108,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
 
     def test_delete_leadattribute(self):
         self.register_user()
+        self.login_user()
         account = self.create_account()
 
         resp = self.create_leadattr(

@@ -21,7 +21,7 @@ class ConstantMixin(object):
     LEADATTR_URL = "/api/leadattribute"
 
     # MemberViewset URLs
-    MEMBER_ATTR_URL = "/api/member"
+    MEMBER_URL = "/api/member"
 
     # LeadViewSet URLs
     LEAD_URL = "/api/lead"
@@ -29,23 +29,33 @@ class ConstantMixin(object):
     def register_user(self, email=DEFAULT_EMAIL):
         user_data = {"email": email, "password": "Test@123"}
         # Register
-        self.client.post(self.REGISTER_URL, user_data)
+        resp = self.client.post(self.REGISTER_URL, user_data)
 
         # UserOTP
         user_otp = UserOTP.objects.filter(is_verified=False).first()
         user_otp.is_verified = True
         user_otp.save()
 
-        # Login
-        login_resp = self.client.post(self.LOGIN_URL, user_data)
-        token = login_resp.json()["token"]
-        self.client.credentials(HTTP_AUTHORIZATION=token)
+        return resp
 
     def login_user(self, email=DEFAULT_EMAIL):
         user_data = {"email": email, "password": "Test@123"}
         login_resp = self.client.post(self.LOGIN_URL, user_data)
         token = login_resp.json()["token"]
         self.client.credentials(HTTP_AUTHORIZATION=token)
+
+    def create_staff_member(self, account_id, email=DEFAULT_EMAIL2, verify=True):
+        register_resp = self.register_user(email).json()
+        member_data = {
+            "account": account_id,
+            "user": register_resp['id'],
+            "role": Member.USER_ROLE.staff
+        }
+        resp = self.client.post(self.MEMBER_URL, member_data)
+        if verify:
+            self.assertEqual(resp.status_code, 201)
+            self.assertEqual(Member.objects.all().count(), 2)
+        return resp
 
     def create_account(self):
         resp = self.client.post(self.ACCOUNT_URL, self.ACCOUNT_DATA, format="json")
