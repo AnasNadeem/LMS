@@ -122,5 +122,4 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
         delete_leadattr_url = f"{self.LEADATTR_URL}/{resp['id']}"
         updated_resp = self.client.delete(delete_leadattr_url)
         self.assertEqual(updated_resp.status_code, 204)
-
         self.assertEqual(LeadAttribute.objects.all().count(), 0)

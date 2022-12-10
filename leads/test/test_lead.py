@@ -195,40 +195,44 @@ class TestLead(APITestCase, ConstantMixin):
         track_data = {
             bool_attr['slug']: False
         }
-        lead_resp = self.create_lead(account['id'], main_data=main_data, track_data=track_data, verify=False)
-        self.assertEqual(lead_resp.status_code, 201)
+        lead_resp = self.create_lead(account['id'], main_data=main_data, track_data=track_data).json()
         self.assertEqual(Lead.objects.all().count(), 1)
+
         self.create_staff_member(account['id'], self.DEFAULT_EMAIL2)
         self.login_user(self.DEFAULT_EMAIL2)
 
         # Updating the data from staff member
-        lead_resp_json = lead_resp.json()
-        lead_resp_json['data']['track'][f"{bool_attr['slug']}"] = True
-        put_lead_url = f"{self.LEAD_URL}/{lead_resp_json['id']}"
-        updated_resp = self.client.put(put_lead_url, data=lead_resp_json)
+        lead_resp['data']['track'][f"{bool_attr['slug']}"] = True
+        put_lead_url = f"{self.LEAD_URL}/{lead_resp['id']}"
+        updated_resp = self.client.put(put_lead_url, data=lead_resp)
         self.assertEqual(updated_resp.status_code, 200)
         self.assertEqual(updated_resp.json()['data']['track'][f"{bool_attr['slug']}"], True)
 
-    # ######################
-    # # ---- DELETE ---- #
-    # ######################
+    ######################
+    # ---- DELETE ---- #
+    ######################
 
-    # def test_delete_leadattribute(self):
-    #     self.register_user()
-    #     self.login_user()
+    def test_delete_leadattribute(self):
+        self.register_user()
+        self.login_user()
 
-    #     account = self.create_account()
+        account = self.create_account()
 
-    #     email_attr = self.create_leadattr(
-    #         account_id=account['id'],
-    #         lead_type=LeadAttribute.LEAD_CHOICES.main,
-    #         name='Email',
-    #         attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.email,
-    #     ).json()
+        email_attr = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.main,
+            name='Email',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.email,
+        ).json()
 
-    #     string_attr = self.create_leadattr(
-    #         account_id=account['id'],
-    #         lead_type=LeadAttribute.LEAD_CHOICES.main,
-    #         name='Name',
-    #         attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.string,
-    #     ).json()
+        # Creating Lead
+        main_data = {
+            email_attr['slug']: 'test@gmail.com',
+        }
+        lead_resp = self.create_lead(account['id'], main_data=main_data).json()
+        self.assertEqual(Lead.objects.all().count(), 1)
+
+        delete_lead_url = f"{self.LEAD_URL}/{lead_resp['id']}"
+        updated_resp = self.client.delete(delete_lead_url)
+        self.assertEqual(updated_resp.status_code, 204)
+        self.assertEqual(Lead.objects.all().count(), 0)
