@@ -12,6 +12,7 @@ from rest_framework import status
 
 
 def send_or_verify_otp(request, user, otp=None, resent=False):
+    resp_data = UserSerializer(user).data
     user_otp = UserOTP.objects.filter(user=user).first()
     if not user_otp:
         random_str = get_random_string(6)
@@ -20,7 +21,7 @@ def send_or_verify_otp(request, user, otp=None, resent=False):
         user_otp.otp = random_str
         user_otp.save()
         send_otp(user, user_otp)
-        resp_data = {'success': f'OTP has been sent to {user.email}.'}
+        resp_data['message'] = f'OTP has been sent to {user.email}.'
         resp_status = status.HTTP_200_OK
         return resp_data, resp_status
 
@@ -37,14 +38,14 @@ def send_or_verify_otp(request, user, otp=None, resent=False):
             user.save()
 
         login(request, user)
-        user_serializer_data = UserSerializer(user).data
-        resp_data = {'user': user_serializer_data, 'token': auth_token}
+        resp_data = UserSerializer(user).data
+        resp_data['token'] = auth_token
         resp_status = status.HTTP_200_OK
         return resp_data, resp_status
 
     if (not otp) and (not user_otp.is_verified):
         send_otp(user, user_otp)
-        resp_data = {'success': f'OTP has been sent to {user.email}.'}
+        resp_data['message'] = f'OTP has been sent to {user.email}.'
         resp_status = status.HTTP_200_OK
         return resp_data, resp_status
 
@@ -56,8 +57,8 @@ def send_or_verify_otp(request, user, otp=None, resent=False):
         user.save()
 
         login(request, user)
-        user_serializer_data = UserSerializer(user).data
-        resp_data = {'user': user_serializer_data, 'token': auth_token}
+        resp_data = UserSerializer(user).data
+        resp_data['token'] = auth_token
         resp_status = status.HTTP_200_OK
         return resp_data, resp_status
     else:

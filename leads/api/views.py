@@ -254,9 +254,12 @@ class MemberViewset(ModelViewSet):
 
     def get_permissions(self):
         member_permission_map = {
+            "create": IsAccountMemberAdmin,
+            "update": IsAccountMemberAdmin,
             "invite_member": IsAccountMemberAdmin
         }
         self.permission_classes = [member_permission_map.get(self.action.lower(), IsAccountMemberAdmin)]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         member_serializer_map = {

@@ -15,6 +15,7 @@ class TestAccount(APITestCase, ConstantMixin):
 
     def test_get_list_with_auth(self):
         self.register_user()
+        self.login_user()
         resp = self.client.get(self.ACCOUNT_URL)
         self.assertEqual(resp.status_code, 200)
 
@@ -28,6 +29,7 @@ class TestAccount(APITestCase, ConstantMixin):
 
     def test_post_with_auth(self):
         self.register_user()
+        self.login_user()
 
         # Incorrect config
         account_data = {
@@ -48,6 +50,7 @@ class TestAccount(APITestCase, ConstantMixin):
 
     def test_auth_user_create_account(self):
         self.register_user()
+        self.login_user()
 
         # POST - User A
         account_data = {"name": "anas", "business_desc": {"it": "its about IT"}}
@@ -72,7 +75,8 @@ class TestAccount(APITestCase, ConstantMixin):
         self.assertEqual(updated_account_resp.status_code, 200)
         self.assertEqual(updated_account_resp.json()['name'], 'test')
 
-        self.register_user(email=self.DEFAULT_EMAIL2)
+        self.register_user(self.DEFAULT_EMAIL2)
+        self.login_user(self.DEFAULT_EMAIL2)
 
         account_data = {
             "name": "abc update",
