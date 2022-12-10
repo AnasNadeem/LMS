@@ -9,16 +9,16 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
     # ---- GET ---- #
     ######################
 
-    def test_get_lead_attribute_without_auth(self):
-        lead_attr_resp = self.client.get(self.LEAD_ATTR_URL)
-        self.assertEqual(lead_attr_resp.status_code, 403)
+    def test_get_leadattribute_without_auth(self):
+        leadattr_resp = self.client.get(self.LEADATTR_URL)
+        self.assertEqual(leadattr_resp.status_code, 403)
 
     def test_get_list_with_auth(self):
         self.register_user()
         self.create_account()
-        lead_attr_resp = self.client.get(self.LEAD_ATTR_URL)
-        self.assertEqual(lead_attr_resp.status_code, 200)
-        self.assertEqual(lead_attr_resp.json(), [])
+        leadattr_resp = self.client.get(self.LEADATTR_URL)
+        self.assertEqual(leadattr_resp.status_code, 200)
+        self.assertEqual(leadattr_resp.json(), [])
 
     ######################
     # ---- POST ---- #
@@ -52,6 +52,30 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
     # ---- PUT ---- #
     ######################
 
+    def test_put_leadattribute_from_diff_user(self):
+        self.register_user()
+        account = self.create_account()
+
+        resp = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.main,
+            name='Email',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.email,
+        ).json()
+        self.assertEqual(resp['name'], 'Email')
+
+        self.register_user(self.DEFAULT_EMAIL2)
+        resp['name'] = 'Name'
+        resp['attribute_type'] = LeadAttribute.ATTRIBUTE_CHOICES.string
+        put_leadattr_url = f"{self.LEADATTR_URL}/{resp['id']}"
+        updated_resp = self.client.put(put_leadattr_url, data=resp)
+        self.assertEqual(updated_resp.status_code, 403)
+
+        self.login_user(self.DEFAULT_EMAIL)
+        leadattr_resp = self.client.get(put_leadattr_url)
+        self.assertEqual(leadattr_resp.json()['name'], 'Email')
+        self.assertEqual(leadattr_resp.json()['attribute_type'], LeadAttribute.ATTRIBUTE_CHOICES.email)
+
     def test_put_leadattribute(self):
         self.register_user()
         account = self.create_account()
@@ -66,7 +90,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
 
         resp['name'] = 'Name'
         resp['attribute_type'] = LeadAttribute.ATTRIBUTE_CHOICES.string
-        put_leadattr_url = f"{self.LEAD_ATTR_URL}/{resp['id']}"
+        put_leadattr_url = f"{self.LEADATTR_URL}/{resp['id']}"
         updated_resp = self.client.put(put_leadattr_url, data=resp)
         self.assertEqual(updated_resp.status_code, 200)
         self.assertEqual(updated_resp.json()['name'], 'Name')
@@ -88,7 +112,7 @@ class TestLeadAttribute(APITestCase, ConstantMixin):
         ).json()
         self.assertEqual(resp['name'], 'Email')
 
-        delete_leadattr_url = f"{self.LEAD_ATTR_URL}/{resp['id']}"
+        delete_leadattr_url = f"{self.LEADATTR_URL}/{resp['id']}"
         updated_resp = self.client.delete(delete_leadattr_url)
         self.assertEqual(updated_resp.status_code, 204)
 
