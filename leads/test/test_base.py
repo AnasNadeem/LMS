@@ -54,7 +54,6 @@ class ConstantMixin(object):
         resp = self.client.post(self.MEMBER_URL, member_data)
         if verify:
             self.assertEqual(resp.status_code, 201)
-            self.assertEqual(Member.objects.all().count(), 2)
         return resp
 
     def create_account(self):
