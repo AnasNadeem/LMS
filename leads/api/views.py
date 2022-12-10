@@ -11,8 +11,8 @@ from django.http import HttpResponse
 
 from rest_framework import response, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
+
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -355,12 +355,7 @@ class LeadViewset(ModelViewSet):
                            .filter(lead_type=LeadAttribute.LEAD_CHOICES.track)
                            )
         # Validate filter's leadattribute and its value
-        for lead_attr, lead_value in filter_data.items():
-            lead_attribute = lead_attributes.filter(slug=lead_attr).first()
-            if not lead_attribute:
-                raise ValidationError({"lead_attribute": f"Invalid lead attribute: '{lead_attr}' for lead type: '{LeadAttribute.LEAD_CHOICES.track}'"})
-            validate_func = getattr(lead_attribute, LeadAttribute.LEADATTR_WITH_VALUE_VALIDATION.get(lead_attribute.attribute_type))
-            validate_func(lead_value)
+        Lead.clean_leadattr_data(Lead, 'track', filter_data, lead_attributes)
 
         leads = self.filter_leads(leads, filter_data)
         lead_serializer = LeadSerializer(leads, many=True).data

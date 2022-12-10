@@ -384,3 +384,10 @@ class TestLead(APITestCase, ConstantMixin):
         }
         lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter)
         self.assertEqual(lead_resp.status_code, 400)
+
+        # Applying invalid filter - bool value
+        lead_filter = {
+            bool_attr['slug']: 'test'
+        }
+        lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter)
+        self.assertEqual(lead_resp.status_code, 400)
