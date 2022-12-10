@@ -266,3 +266,106 @@ class TestLead(APITestCase, ConstantMixin):
         updated_resp = self.client.delete(delete_lead_url)
         self.assertEqual(updated_resp.status_code, 204)
         self.assertEqual(Lead.objects.all().count(), 0)
+
+    ######################
+    # ---- LEAD FILTER ---- #
+    ######################
+
+    def test_lead_filter(self):
+        self.register_user()
+        self.login_user()
+        account = self.create_account()
+
+        # LeadAttrbite - email
+        email_attr = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.main,
+            name='Email',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.email,
+        ).json()
+
+        # LeadAttrbite - name
+        string_attr = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.main,
+            name='Name',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.string,
+        ).json()
+
+        # LeadAttrbite - integer
+        integer_attr = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.main,
+            name='Number',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.integer,
+        ).json()
+
+        # LeadAttrbite - boolean
+        bool_attr = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.track,
+            name='Paid',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.boolean,
+        ).json()
+
+        # LeadAttrbite - Choice
+        choice_attr = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.track,
+            name='Status',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.choices,
+            value=['Open', 'Closed']
+        ).json()
+
+        # Creating Lead1
+        main_data = {
+            email_attr['slug']: 'test@gmail.com',
+            string_attr['slug']: 'test',
+            integer_attr['slug']: 23,
+        }
+        track_data = {
+            bool_attr['slug']: False,
+            choice_attr['slug']: 'Open'
+        }
+        self.create_lead(account['id'], main_data=main_data, track_data=track_data)
+        self.assertEqual(Lead.objects.all().count(), 1)
+
+        # Creating Lead2
+        main_data = {
+            email_attr['slug']: 'test2@gmail.com',
+            string_attr['slug']: 'test2',
+            integer_attr['slug']: 12,
+        }
+        track_data = {
+            bool_attr['slug']: True,
+            choice_attr['slug']: 'Closed'
+        }
+        self.create_lead(account['id'], main_data=main_data, track_data=track_data)
+        self.assertEqual(Lead.objects.all().count(), 2)
+
+        # Creating Lead2
+        main_data = {
+            email_attr['slug']: 'test3@gmail.com',
+            string_attr['slug']: 'test3',
+            integer_attr['slug']: 10,
+        }
+        track_data = {
+            bool_attr['slug']: False,
+            choice_attr['slug']: 'Open'
+        }
+        self.create_lead(account['id'], main_data=main_data, track_data=track_data)
+        self.assertEqual(Lead.objects.all().count(), 3)
+
+        # Applying filter - choices
+        lead_filter = {
+            choice_attr['slug']: 'Open'
+        }
+        lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter).json()
+        self.assertEqual(len(lead_resp), 2)
+
+        # Applying filter - boolean
+        lead_filter = {
+            bool_attr['slug']: True
+        }
+        lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter).json()
+        self.assertEqual(len(lead_resp), 1)

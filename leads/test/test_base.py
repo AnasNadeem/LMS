@@ -25,6 +25,7 @@ class ConstantMixin(object):
 
     # LeadViewSet URLs
     LEAD_URL = "/api/lead"
+    LEAD_FILTER_URL = LEAD_URL + "/lead_filter"
 
     def register_user(self, email=DEFAULT_EMAIL):
         user_data = {"email": email, "password": "Test@123"}

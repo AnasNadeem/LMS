@@ -156,6 +156,7 @@ class AccountViewset(ModelViewSet):
             "retrieve": IsAuthenticated,
             "update": IsAccountMemberAdmin,
             "partial_update": IsAccountMemberAdmin,
+            "destroy": IsAccountMemberAdmin
         }
         self.permission_classes = [account_permission_map.get(self.action.lower(), AccountPermission)]
         return super().get_permissions()
@@ -341,19 +342,12 @@ class LeadViewset(ModelViewSet):
     ))
     @action(detail=False, methods=['put'])
     def lead_filter(self, request):
-        data = request.data
-        account_id = data.get('account_id')
-        filters = data.get('filters', {})
+        filter_data = request.data
         # {
         # "trackdata1":[<option1>, <option2>],
         # "trackdata2":[<option1>, <option2>],
         # }
-        account = Account.objects.filter(pk=account_id).first()
-        if not account:
-            resp_data = {'error': 'Invalud account'}
-            resp_status = status.HTTP_400_BAD_REQUEST
-            return response.Response(resp_data, status=resp_status)
-
+        account = request.account
         leads = account.lead_set.all()
 
         # lead_attrs = (account.leadattribute_set.all()
@@ -368,13 +362,13 @@ class LeadViewset(ModelViewSet):
         #     for data in filter_data:
         # TODO - Create a validate function for Lead Attribute
 
-        leads = self.filter_leads(leads, filters)
+        leads = self.filter_leads(leads, filter_data)
         lead_serializer = LeadSerializer(leads, many=True).data
         return response.Response(lead_serializer, status=status.HTTP_200_OK)
 
-    def filter_leads(leads, filters):
-        for filter_key, filter_value in filters.items():
-            annotate_dict = {filter_key: KeyTextTransform(f'track__{filter_key}', 'fields')}
+    def filter_leads(self, leads, filter_data):
+        for filter_key, filter_value in filter_data.items():
+            annotate_dict = {filter_key: KeyTextTransform(f'{filter_key}', 'data__track')}
             query_dict = {f"{filter_key}__icontains": filter_value}
             leads = (leads
                      .annotate(**annotate_dict)
