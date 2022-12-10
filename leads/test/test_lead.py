@@ -212,7 +212,37 @@ class TestLead(APITestCase, ConstantMixin):
     # ---- DELETE ---- #
     ######################
 
-    def test_delete_leadattribute(self):
+    def test_delete_lead_from_staff(self):
+        self.register_user()
+        self.login_user()
+
+        account = self.create_account()
+
+        email_attr = self.create_leadattr(
+            account_id=account['id'],
+            lead_type=LeadAttribute.LEAD_CHOICES.main,
+            name='Email',
+            attribute_type=LeadAttribute.ATTRIBUTE_CHOICES.email,
+        ).json()
+
+        # Creating Lead
+        main_data = {
+            email_attr['slug']: 'test@gmail.com',
+        }
+        lead_resp = self.create_lead(account['id'], main_data=main_data).json()
+        self.assertEqual(Lead.objects.all().count(), 1)
+
+        self.create_staff_member(account['id'], self.DEFAULT_EMAIL2)
+
+        self.client.logout()
+        self.login_user(self.DEFAULT_EMAIL2)
+
+        delete_lead_url = f"{self.LEAD_URL}/{lead_resp['id']}"
+        updated_resp = self.client.delete(delete_lead_url)
+        self.assertEqual(updated_resp.status_code, 403)
+        self.assertEqual(Lead.objects.all().count(), 1)
+
+    def test_delete_lead(self):
         self.register_user()
         self.login_user()
 

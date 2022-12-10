@@ -324,6 +324,14 @@ class LeadViewset(ModelViewSet):
     serializer_class = LeadSerializer
     permission_classes = (IsAccountMember,)
 
+    def get_permissions(self):
+        lead_permission_map = {
+            "create": IsAccountMemberAdmin,
+            "destroy": IsAccountMemberAdmin
+        }
+        self.permission_classes = [lead_permission_map.get(self.action.lower(), IsAccountMember)]
+        return super().get_permissions()
+
     account_pk_param = openapi.Schema('account_id', description='Account Id', type=openapi.TYPE_STRING)
     filters_param = openapi.Schema('filters', description='Filters', type=openapi.TYPE_OBJECT)
 
