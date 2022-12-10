@@ -40,6 +40,46 @@ class LeadAttribute(TimeBaseModel):
     def __str__(self):
         return f"{self.name} {self.lead_type}"
 
+    LEADATTR_WITH_VALUE_VALIDATION = {
+        'boolean': 'validate_bool',
+        'choices': 'validate_choices',
+        'email': 'validate_email',
+        'integer': 'validate_integer',
+        'phone_number': 'validate_phone_number',
+        'string': 'validate_string',
+    }
+
+    def validate_bool(self, lead_value):
+        if not isinstance(lead_value, bool):
+            raise ValidationError({self.slug: f"Invalid boolean: '{lead_value}' for field: '{self.name}'"})
+
+    def validate_choices(self, lead_value):
+        if not isinstance(self.value, list):
+            raise ValidationError({self.slug: f"Invalid choices '{lead_value}' for field '{self.name}'"})
+
+        if not len(self.value):
+            raise ValidationError({self.slug: f"Invalid choices value: '{lead_value}' for field: '{self.name}'"})
+
+    def validate_email(self, lead_value):
+        try:
+            validate_email(lead_value)
+        except Exception as e:
+            e.message = f"Invalid email: '{lead_value}' for field: {self.name}."
+            raise ValidationError({self.slug: e.message})
+
+    def validate_integer(self, lead_value):
+        if not isinstance(lead_value, int):
+            raise ValidationError({self.slug: f"Invalid integer: '{lead_value}' for field: '{self.name}'"})
+
+    def validate_phone_number(self, lead_value):
+        phone_num = phonenumbers.parse(lead_value)
+        if not phonenumbers.is_valid_number(phone_num):
+            raise ValidationError({self.slug: f"Invalid phone number: '{lead_value}' for field: '{self.name}'"})
+
+    def validate_string(self, lead_value):
+        if not isinstance(lead_value, str):
+            raise ValidationError({self.slug: f"Invalid string: '{lead_value}' for field: '{self.name}'"})
+
 
 class Lead(TimeBaseModel):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -72,43 +112,8 @@ class Lead(TimeBaseModel):
             lead_attribute = lead_attributes.filter(slug=lead_attr).first()
             if not lead_attribute:
                 raise ValidationError({"lead_attribute": f"Invalid lead attribute: '{lead_attr}' for lead type: '{lead_type}'"})
-
-            # Email Validation
-            if lead_attribute.attribute_type == LeadAttribute.ATTRIBUTE_CHOICES.email:
-                try:
-                    validate_email(lead_value)
-                except Exception as e:
-                    e.message = f"Invalid email: '{lead_value}' for field: {lead_attribute.name}."
-                    raise ValidationError({lead_attribute.slug: e.message})
-
-            # String Validation
-            if lead_attribute.attribute_type == LeadAttribute.ATTRIBUTE_CHOICES.string:
-                if not isinstance(lead_value, str):
-                    raise ValidationError({lead_attribute.slug: f"Invalid string: '{lead_value}' for field: '{lead_attribute.name}'"})
-
-            # Integer Validation
-            if lead_attribute.attribute_type == LeadAttribute.ATTRIBUTE_CHOICES.integer:
-                if not isinstance(lead_value, int):
-                    raise ValidationError({lead_attribute.slug: f"Invalid integer: '{lead_value}' for field: '{lead_attribute.name}'"})
-
-            # Phone Number Validation
-            if lead_attribute.attribute_type == LeadAttribute.ATTRIBUTE_CHOICES.phone_number:
-                phone_num = phonenumbers.parse(lead_value)
-                if not phonenumbers.is_valid_number(phone_num):
-                    raise ValidationError({lead_attribute.slug: f"Invalid phone number: '{lead_value}' for field: '{lead_attribute.name}'"})
-
-            # Choices Validation
-            if lead_attribute.attribute_type == LeadAttribute.ATTRIBUTE_CHOICES.choices:
-                if not isinstance(lead_attribute.value, list):
-                    raise ValidationError({lead_attribute.slug: f"Invalid choices '{lead_value}' for field '{lead_attribute.name}'"})
-
-                if not len(lead_attribute.value):
-                    raise ValidationError({lead_attribute.slug: f"Invalid choices value: '{lead_value}' for field: '{lead_attribute.name}'"})
-
-            # Boolean Validation
-            if lead_attribute.attribute_type == LeadAttribute.ATTRIBUTE_CHOICES.boolean:
-                if not isinstance(lead_value, bool):
-                    raise ValidationError({lead_attribute.slug: f"Invalid boolean: '{lead_value}' for field: '{lead_attribute.name}'"})
+            validate_func = getattr(lead_attribute, LeadAttribute.LEADATTR_WITH_VALUE_VALIDATION.get(lead_attribute.attribute_type))
+            validate_func(lead_value)
 
 
 class LeadUserMap(TimeBaseModel):

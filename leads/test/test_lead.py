@@ -356,6 +356,10 @@ class TestLead(APITestCase, ConstantMixin):
         self.create_lead(account['id'], main_data=main_data, track_data=track_data)
         self.assertEqual(Lead.objects.all().count(), 3)
 
+        ######################
+        # ---- VALID FILTER ---- #
+        ######################
+
         # Applying filter - choices
         lead_filter = {
             choice_attr['slug']: 'Open'
@@ -369,3 +373,14 @@ class TestLead(APITestCase, ConstantMixin):
         }
         lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter).json()
         self.assertEqual(len(lead_resp), 1)
+
+        ######################
+        # ---- INVALID FILTER ---- #
+        ######################
+
+        # Applying invalid filter slug
+        lead_filter = {
+            'hello': True
+        }
+        lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter)
+        self.assertEqual(lead_resp.status_code, 400)
