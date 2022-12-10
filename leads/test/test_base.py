@@ -1,4 +1,4 @@
-from leads.models_user import UserOTP
+from leads.models_user import UserOTP, Member
 
 
 class ConstantMixin(object):
@@ -50,6 +50,7 @@ class ConstantMixin(object):
     def create_account(self):
         resp = self.client.post(self.ACCOUNT_URL, self.ACCOUNT_DATA, format="json")
         self.assertEqual(resp.status_code, 201)
+        self.assertEqual(Member.objects.all().count(), 1)
         return resp.json()
 
     def create_leadattr(self, account_id, lead_type, name, attribute_type, value={}, verify=True):
@@ -61,6 +62,21 @@ class ConstantMixin(object):
             'value': value,
         }
         resp = self.client.post(self.LEADATTR_URL, leadattr_data, format="json")
+        if verify:
+            self.assertEqual(resp.status_code, 201)
+        return resp
+
+    def create_lead(self, account_id, main_data={}, track_data={}, post_data={}, verify=True):
+        data = {
+            "main": main_data,
+            "track": track_data,
+            "post": post_data
+        }
+        lead_data = {
+            'account': account_id,
+            'data': data
+        }
+        resp = self.client.post(self.LEAD_URL, lead_data, format="json")
         if verify:
             self.assertEqual(resp.status_code, 201)
         return resp
