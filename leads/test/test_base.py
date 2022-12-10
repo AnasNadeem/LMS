@@ -20,8 +20,11 @@ class ConstantMixin(object):
     # LeadAttributeViewSet URLs
     LEADATTR_URL = "/api/leadattribute"
 
-    # members
+    # MemberViewset URLs
     MEMBER_ATTR_URL = "/api/member"
+
+    # LeadViewSet URLs
+    LEAD_URL = "/api/lead"
 
     def register_user(self, email=DEFAULT_EMAIL):
         user_data = {"email": email, "password": "Test@123"}
