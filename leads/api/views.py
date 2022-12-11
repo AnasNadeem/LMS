@@ -345,26 +345,27 @@ class LeadViewset(ModelViewSet):
     def lead_filter(self, request):
         filter_data = request.data
         # {
-        # "trackdata1":[<option1>, <option2>],
-        # "trackdata2":[<option1>, <option2>],
+        # "leadattribute_slug":[<op>, <value>],
+        # "leadattribute_slug":[<op>, <value>],
         # }
         account = request.account
         leads = account.lead_set.all()
 
-        lead_attributes = (account.leadattribute_set.all()
-                           .filter(lead_type=LeadAttribute.LEAD_CHOICES.track)
-                           )
+        lead_attributes = (account.leadattribute_set.all())
         # Validate filter's leadattribute and its value
-        Lead.clean_leadattr_data(Lead, 'track', filter_data, lead_attributes)
+        Lead.clean_leadattr_data(Lead, filter_data, lead_attributes)
 
-        leads = self.filter_leads(leads, filter_data)
+        leads = self.filter_leads(leads, lead_attributes, filter_data)
         lead_serializer = LeadSerializer(leads, many=True).data
         return response.Response(lead_serializer, status=status.HTTP_200_OK)
 
-    def filter_leads(self, leads, filter_data):
+    def filter_leads(self, leads, lead_attributes, filter_data):
         for filter_key, filter_value in filter_data.items():
-            annotate_dict = {filter_key: KeyTextTransform(f'{filter_key}', 'data__track')}
-            query_dict = {f"{filter_key}__icontains": filter_value}
+            lead_type = lead_attributes.get(slug=filter_key).lead_type
+            annotate_dict = {filter_key: KeyTextTransform(f'{filter_key}', f'data__{lead_type}')}
+            op, filter_value = (filter_value[0], filter_value[1]) if isinstance(filter_value, list) else (None, filter_value)
+            query_filter = f"{filter_key}__{op}" if op else f"{filter_key}__icontains"
+            query_dict = {query_filter: filter_value}
             leads = (leads
                      .annotate(**annotate_dict)
                      .filter(**query_dict)

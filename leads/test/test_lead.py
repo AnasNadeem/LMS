@@ -374,6 +374,21 @@ class TestLead(APITestCase, ConstantMixin):
         lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter).json()
         self.assertEqual(len(lead_resp), 1)
 
+        # Applying filter - Dynamic filter on 1 leadattr
+        lead_filter = {
+            integer_attr['slug']: ['lte', 20]
+        }
+        lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter).json()
+        self.assertEqual(len(lead_resp), 2)
+
+        # Applying filter - Dynamic filter on 2 leadattr
+        lead_filter = {
+            bool_attr['slug']: True,
+            integer_attr['slug']: ['lte', 20]
+        }
+        lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter).json()
+        self.assertEqual(len(lead_resp), 1)
+
         ######################
         # ---- INVALID FILTER ---- #
         ######################
