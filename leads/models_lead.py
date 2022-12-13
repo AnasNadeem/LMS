@@ -165,6 +165,16 @@ class LeadAttribute(TimeBaseModel):
         if not isinstance(lead_value, str):
             raise ValidationError({self.slug: f"Invalid string: '{lead_value}' for field: '{self.name}'"})
 
+    def validate_op(self, op):
+        if not op:
+            raise ValidationError({"op": "Empty Op"})
+
+        if op not in self.OPS:
+            raise ValidationError({"op": f"Invalid op: '{op}'"})
+
+        if op not in self.ATTR_OP_COMBO[self.attribute_type]:
+            raise ValidationError({"op": f"Invalid op combo: Attribute: '{self.attribute_type}' cannot be used with Op: '{op}'"})
+
 
 class Lead(TimeBaseModel):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
@@ -199,8 +209,8 @@ class Lead(TimeBaseModel):
                 raise ValidationError({"lead_attribute": f"Invalid lead attribute: '{lead_attr}''"})
             # Check if the lead_value contains op
             op, lead_value = (lead_value[0], lead_value[1]) if (isinstance(lead_value, list)) else (None, lead_value)
-            if op and (op not in lead_attribute.OPS):
-                raise ValidationError({"op": f"Invalid op: '{op}'"})
+            if op:
+                lead_attribute.validate_op(op)
             validate_func = getattr(lead_attribute, lead_attribute.LEADATTR_WITH_VALUE_VALIDATION.get(lead_attribute.attribute_type))
             validate_func(lead_value)
 

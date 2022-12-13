@@ -413,3 +413,10 @@ class TestLead(APITestCase, ConstantMixin):
         }
         lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter)
         self.assertEqual(lead_resp.status_code, 400)
+
+        # Applying invalid op combo
+        lead_filter = {
+            string_attr['slug']: ['gt', 'test']
+        }
+        lead_resp = self.client.put(self.LEAD_FILTER_URL, data=lead_filter)
+        self.assertEqual(lead_resp.status_code, 400)
