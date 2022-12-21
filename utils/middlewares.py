@@ -23,9 +23,5 @@ class AccountMiddleware(object):
         request.member = Member.objects.filter(user=request.user).first()
         request.account = request.member.account if request.member else None
 
-        if not request.account:
-            response = self.get_response(request)
-            return response
-
         response = self.get_response(request)
         return response
