@@ -3,17 +3,10 @@ from rest_framework.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from autoslug import AutoSlugField
 from model_utils import Choices
 from phonenumber_field.modelfields import PhoneNumberField
 from leads.models_base import TimeBaseModel
 from leads.models_manager import UserManager
-
-from autoslug.settings import slugify as default_slugify
-
-
-def custom_slugify(value):
-    return default_slugify(value).replace('-', '_')
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -50,7 +43,6 @@ class Account(TimeBaseModel):
     )
     name = models.CharField(max_length=150)
     business_desc = models.JSONField(default=dict, null=True, blank=True)
-    subdomain = AutoSlugField(custom_slugify, max_length=8, populate_from='name', unique=True)
     # users = models.ManyToManyField(User, blank=True)
     is_active = models.BooleanField(default=True)
 
