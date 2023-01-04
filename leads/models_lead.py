@@ -36,6 +36,7 @@ class LeadAttribute(TimeBaseModel):
     attribute_type = models.CharField(max_length=50, choices=ATTRIBUTE_CHOICES)
     value = models.JSONField(default=dict, null=True, blank=True)
     seq_no = models.PositiveIntegerField(null=True, blank=True)
+    help_text = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.name} {self.lead_type}"
