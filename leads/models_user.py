@@ -13,7 +13,7 @@ from autoslug.settings import slugify as default_slugify
 
 
 def custom_slugify(value):
-    return default_slugify(value).replace('-', '_')
+    return default_slugify(value).replace('-', '')
 
 
 class User(AbstractBaseUser, PermissionsMixin):
