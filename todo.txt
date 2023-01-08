@@ -2,11 +2,15 @@ Send report [Later]
 Whatsapp Feature [On Hold]
 
 TODO:
-Override post of MemberViewset: Send mail to member that you have been invited. [Anas + Coffie]
-Add api 'set_password' in UserViewSet [Coffie]
-Assign lead to member/LeadUserMap CRUD [In Progress] [Anas]
-Lead Report By Mid/Track data [Anas]
+Override post of MemberViewset: Send mail to member that you have been invited.
+Add api 'set_password' in UserViewSet
+Assign lead to member/LeadUserMap CRUD [In Progress]
+Lead Report By Mid/Track data
     1. self
     2. By Member (For Admin)
 Save report [Client Side Integration]
 Validation for LeadAttribute
+
+
+Bug:
+Upon adding more lead attribute, it's data doesn't gets updated in existing lead

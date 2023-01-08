@@ -36,6 +36,7 @@ class LeadAttribute(TimeBaseModel):
     attribute_type = models.CharField(max_length=50, choices=ATTRIBUTE_CHOICES)
     value = models.JSONField(default=dict, null=True, blank=True)
     seq_no = models.PositiveIntegerField(null=True, blank=True)
+    help_text = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.name} {self.lead_type}"
@@ -211,6 +212,8 @@ class Lead(TimeBaseModel):
             op, lead_value = (lead_value[0], lead_value[1]) if (isinstance(lead_value, list)) else (None, lead_value)
             if op:
                 lead_attribute.validate_op(op)
+            if not lead_value:
+                return
             validate_func = getattr(lead_attribute, lead_attribute.LEADATTR_WITH_VALUE_VALIDATION.get(lead_attribute.attribute_type))
             validate_func(lead_value)
 
