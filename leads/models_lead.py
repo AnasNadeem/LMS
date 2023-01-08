@@ -212,6 +212,8 @@ class Lead(TimeBaseModel):
             op, lead_value = (lead_value[0], lead_value[1]) if (isinstance(lead_value, list)) else (None, lead_value)
             if op:
                 lead_attribute.validate_op(op)
+            if not lead_value:
+                return
             validate_func = getattr(lead_attribute, lead_attribute.LEADATTR_WITH_VALUE_VALIDATION.get(lead_attribute.attribute_type))
             validate_func(lead_value)
 
