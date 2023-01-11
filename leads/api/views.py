@@ -178,9 +178,7 @@ class AccountViewset(ModelViewSet):
         return member_serializer_map.get(self.action.lower(), AccountSerializer)
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return []
-        return self.request.account
+        return Account.objects.filter(pk=self.request.account.pk) if self.request.account else []
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -326,9 +324,7 @@ class MemberViewset(ModelViewSet):
         return response.Response({}, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return []
-        return self.request.account.member_set.all()
+        return self.request.account.member_set.all() if self.request.account else []
 
 
 class LeadViewset(ModelViewSet):
@@ -383,9 +379,7 @@ class LeadViewset(ModelViewSet):
         return leads
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return []
-        return self.request.account.lead_set.all()
+        return self.request.account.lead_set.all() if self.request.account else []
 
 
 class LeadAttributeViewset(ModelViewSet):
@@ -394,9 +388,7 @@ class LeadAttributeViewset(ModelViewSet):
     permission_classes = (LeadAttributePermission,)
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return []
-        return self.request.account.leadattribute_set.all()
+        return self.request.account.leadattribute_set.all() if self.request.account else []
 
 
 class LeadUserMapViewset(ModelViewSet):

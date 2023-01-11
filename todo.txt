@@ -11,6 +11,7 @@ Lead Report By Mid/Track data
 Save report [Client Side Integration]
 Validation for LeadAttribute
 
+ElasticSearch in Lead
 
 Bug:
 Upon adding more lead attribute, it's data doesn't gets updated in existing lead
