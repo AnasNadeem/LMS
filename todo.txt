@@ -14,3 +14,8 @@ Validation for LeadAttribute
 
 Bug:
 Upon adding more lead attribute, it's data doesn't gets updated in existing lead
+https://stackoverflow.com/questions/36680691/updating-jsonfield-in-django-rest-framework
+https://www.postgresql.org/docs/13/functions-json.html
+https://gist.github.com/bmispelon/d7f4ecc710a3c2f5c6b07ba5453c4398
+https://stackoverflow.com/questions/48358162/how-to-append-delete-data-from-jsonfield-in-django
+https://stackoverflow.com/questions/38883233/postgres-jsonb-set-multiple-keys-update

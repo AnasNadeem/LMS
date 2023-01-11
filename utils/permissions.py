@@ -47,8 +47,29 @@ class IsAccountMemberAdmin(IsAccountMember):
                 request.member.role == Member.USER_ROLE.admin)
 
 
+class LeadPermission(IsAccountMemberAdmin):
+
+    def has_object_permission(self, request, view, obj):
+        super().has_object_permission(request, view, obj)
+        return obj.account.pk == request.account.pk
+
+
 class LeadAttributePermission(IsAccountMemberAdmin):
 
     def has_object_permission(self, request, view, obj):
         super().has_object_permission(request, view, obj)
         return obj.account.pk == request.account.pk
+
+
+class MemberPermission(IsAccountMemberAdmin):
+
+    def has_object_permission(self, request, view, obj):
+        super().has_object_permission(request, view, obj)
+        return obj.account.pk == request.account.pk
+
+
+class LeadUserMapPermission(IsAccountMemberAdmin):
+
+    def has_object_permission(self, request, view, obj):
+        super().has_object_permission(request, view, obj)
+        return obj.member.account.pk == request.account.pk
