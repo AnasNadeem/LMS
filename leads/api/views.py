@@ -23,6 +23,8 @@ from utils.permissions import (IsAuthenticated,
                                UserPermission,
                                LeadAttributePermission,
                                LeadPermission,
+                               LeadUserMapPermission,
+                               MemberPermission,
                                )
 from utils.helper_functions import send_or_verify_otp
 from .serializers import (AccountSerializer,
@@ -255,7 +257,7 @@ class AccountViewset(ModelViewSet):
 class MemberViewset(ModelViewSet):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
-    permission_classes = (IsAccountMemberAdmin,)
+    permission_classes = (MemberPermission,)
 
     def get_permissions(self):
         member_permission_map = {
@@ -400,4 +402,4 @@ class LeadAttributeViewset(ModelViewSet):
 class LeadUserMapViewset(ModelViewSet):
     queryset = LeadUserMap.objects.all()
     serializer_class = LeadUserMapSerializer
-    permission_classes = (IsAccountMemberAdmin,)
+    permission_classes = (LeadUserMapPermission,)
