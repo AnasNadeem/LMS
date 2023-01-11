@@ -7,4 +7,3 @@ class LeadsConfig(AppConfig):
 
     def ready(self):
         import leads.signals
- 

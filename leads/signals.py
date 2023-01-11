@@ -14,3 +14,9 @@ def memberCreated(sender, instance, created, **kwargs):
         email_from = settings.EMAIL_HOST_USER
         recipient_mail = [instance.user.email]
         send_mail(subject, message, email_from, recipient_mail, fail_silently=False)
+
+
+# @receiver(post_save, sender=LeadAttribute)
+# def add_field_to_existing_lead_data(sender, instance, created, **kwargs):
+#     if not created:
+#         return

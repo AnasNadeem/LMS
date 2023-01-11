@@ -21,6 +21,8 @@ from utils.permissions import (IsAuthenticated,
                                IsAccountMemberAdmin,
                                AccountPermission,
                                UserPermission,
+                               LeadAttributePermission,
+                               LeadPermission,
                                )
 from utils.helper_functions import send_or_verify_otp
 from .serializers import (AccountSerializer,
@@ -28,6 +30,7 @@ from .serializers import (AccountSerializer,
                           LoginSerializer,
                           LeadSerializer,
                           LeadAttributeSerializer,
+                          LeadUserMapSerializer,
                           MemberSerializer,
                           MemberWithUserSerializer,
                           OtpSerializer,
@@ -175,7 +178,7 @@ class AccountViewset(ModelViewSet):
     def get_queryset(self):
         if not self.request.user.is_authenticated:
             return []
-        return super().get_queryset()
+        return self.request.account
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -320,11 +323,16 @@ class MemberViewset(ModelViewSet):
         member.save()
         return response.Response({}, status=status.HTTP_201_CREATED)
 
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return []
+        return self.request.account.member_set.all()
+
 
 class LeadViewset(ModelViewSet):
     queryset = Lead.objects.all()
     serializer_class = LeadSerializer
-    permission_classes = (IsAccountMember,)
+    permission_classes = (LeadPermission,)
 
     def get_permissions(self):
         lead_permission_map = {
@@ -372,21 +380,24 @@ class LeadViewset(ModelViewSet):
                      )
         return leads
 
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return []
+        return self.request.account.lead_set.all()
+
 
 class LeadAttributeViewset(ModelViewSet):
     queryset = LeadAttribute.objects.all()
     serializer_class = LeadAttributeSerializer
-    permission_classes = (IsAccountMemberAdmin,)
+    permission_classes = (LeadAttributePermission,)
 
-    # def get_queryset(self):
-    #     if not self.request.user.is_authenticated:
-    #         return []
-    #     members = self.request.user.member_set.all()
-    #     accounts = [member.account for member in members]
-    #     return accounts
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return []
+        return self.request.account.leadattribute_set.all()
 
 
 class LeadUserMapViewset(ModelViewSet):
     queryset = LeadUserMap.objects.all()
-    serializer_class = LeadAttributeSerializer
+    serializer_class = LeadUserMapSerializer
     permission_classes = (IsAccountMemberAdmin,)
