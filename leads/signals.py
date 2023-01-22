@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from leads.models_user import Member
+from leads.models_lead import LeadAttribute, Lead
 
 
 @receiver(post_save, sender=Member)
@@ -16,7 +17,15 @@ def memberCreated(sender, instance, created, **kwargs):
         send_mail(subject, message, email_from, recipient_mail, fail_silently=False)
 
 
-# @receiver(post_save, sender=LeadAttribute)
-# def add_field_to_existing_lead_data(sender, instance, created, **kwargs):
-#     if not created:
-#         return
+@receiver(post_save, sender=LeadAttribute)
+def add_field_to_existing_lead_data(sender, instance, created, **kwargs):
+    if not created:
+        return
+    for lead in Lead.objects.filter(account=instance.account):
+        lead.data[f"{instance.lead_type}"][f"{instance.slug}"] = None
+        lead.save()
+
+    # Lead.objects.filter(account=instance.account).update(**{f"data__{instance.lead_type}__{instance.slug}": None})
+    # for lead in instance.account.lead_set.all():
+    #     update_field = {f"data__{instance.lead_type}__{instance.slug}": None}
+    #     lead.update(**update_field)
