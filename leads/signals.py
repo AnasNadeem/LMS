@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from leads.models_user import Member
@@ -29,3 +29,10 @@ def add_field_to_existing_lead_data(sender, instance, created, **kwargs):
     # for lead in instance.account.lead_set.all():
     #     update_field = {f"data__{instance.lead_type}__{instance.slug}": None}
     #     lead.update(**update_field)
+
+
+@receiver(post_delete, sender=LeadAttribute)
+def delete_field_to_existing_lead_data(sender, instance, **kwargs):
+    for lead in Lead.objects.filter(account=instance.account):
+        del lead.data[f"{instance.lead_type}"][f"{instance.slug}"]
+        lead.save()
