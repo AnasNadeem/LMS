@@ -156,8 +156,8 @@ class AccountViewset(ModelViewSet):
     def get_permissions(self):
         account_permission_map = {
             "create": IsAuthenticated,
-            "download_csv": IsAccountMemberAdmin,
-            "upload_via_csv": IsAccountMemberAdmin,
+            "download_structure_csv": IsAccountMemberAdmin,
+            "upload_leads_via_csv": IsAccountMemberAdmin,
             "list": IsAuthenticated,
             "retrieve": IsAuthenticated,
             "update": IsAccountMemberAdmin,
@@ -199,7 +199,7 @@ class AccountViewset(ModelViewSet):
         return response.Response(account_member_serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'])
-    def download_csv(self, request):
+    def download_structure_csv(self, request):
         account = request.account
         lead_attrs = (account.leadattribute_set
                       .values_list('slug', flat=True)
@@ -218,7 +218,7 @@ class AccountViewset(ModelViewSet):
         return csv_response
 
     @action(detail=False, methods=['post'])
-    def upload_via_csv(self, request):
+    def upload_leads_via_csv(self, request):
         account = request.account
         file = request.data.get('file')
         if not file:
