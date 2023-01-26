@@ -225,10 +225,10 @@ class AccountViewset(ModelViewSet):
             return response.Response({'error': 'File required'}, status=status.HTTP_400_BAD_REQUEST)
 
         df = pd.read_csv(file)
+        df.replace({pd.NaT: None}, inplace=True)
         error_list = []
         lead_attrs = account.leadattribute_set.all()
-        lead_attrs_slug = lead_attrs.values('slug')
-
+        lead_attrs_slug = lead_attrs.values_list('slug', flat=True)
         for lead_column in df.columns:
             if lead_column not in lead_attrs_slug:
                 error = f"{lead_column} is invalid lead attribute. Download csv for attributes."
@@ -239,11 +239,11 @@ class AccountViewset(ModelViewSet):
         with transaction.atomic():
             for index, row in df.iterrows():
                 # all_data = {slug: row[slug] for slug in df.columns}
-                lead_data = {}
+                lead_data = {'main': {}, 'track': {}, 'post': {}}
                 for slug in df.columns:
                     lead_attr = lead_attrs.filter(slug=slug).first()
-                    lead_data[lead_attr.lead_type] = row[slug]
-
+                    value = row[slug]
+                    lead_data[lead_attr.lead_type][slug] = value
                 lead = Lead()
                 lead.account = account
                 lead.data = lead_data
