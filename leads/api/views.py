@@ -156,6 +156,7 @@ class AccountViewset(ModelViewSet):
     def get_permissions(self):
         account_permission_map = {
             "create": IsAuthenticated,
+            "constants": IsAuthenticated,
             "download_structure_csv": IsAccountMemberAdmin,
             "upload_leads_via_csv": IsAccountMemberAdmin,
             "list": IsAuthenticated,
@@ -250,6 +251,12 @@ class AccountViewset(ModelViewSet):
                 lead.save()
 
         return response.Response({}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'])
+    def constants(self, request):
+        return response.Response({
+            'ATTR_OP_COMBO': LeadAttribute.ATTR_OP_COMBO,
+        }, status=status.HTTP_200_OK)
 
 
 class MemberViewset(ModelViewSet):
