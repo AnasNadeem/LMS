@@ -299,7 +299,7 @@ class MemberViewset(ModelViewSet):
         role = data.get('role', '')
 
         if not email:
-            return response.Response({'error': 'File required'}, status=status.HTTP_400_BAD_REQUEST)
+            return response.Response({'error': 'Email required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             validate_email(email)
         except Exception as e:
@@ -366,7 +366,7 @@ class LeadViewset(ModelViewSet):
 
         lead_attributes = (account.leadattribute_set.all())
         # Validate filter's leadattribute and its value
-        Lead.clean_leadattr_data(Lead, filter_data, lead_attributes)
+        Lead.clean_leadattr_data(Lead, filter_data, lead_attributes, skip_value_check=True)
 
         leads = self.filter_leads(leads, lead_attributes, filter_data)
         lead_serializer = LeadSerializer(leads, many=True).data

@@ -203,7 +203,7 @@ class Lead(TimeBaseModel):
             lead_attributes = all_lead_attributes.filter(lead_type=lead_type)
             self.clean_leadattr_data(lead_data, lead_attributes)
 
-    def clean_leadattr_data(self, lead_data, lead_attributes):
+    def clean_leadattr_data(self, lead_data, lead_attributes, skip_value_check=False):
         for lead_attr, lead_value in lead_data.items():
             lead_attribute = lead_attributes.filter(slug=lead_attr).first()
             if not lead_attribute:
@@ -214,6 +214,10 @@ class Lead(TimeBaseModel):
                 lead_attribute.validate_op(op)
             if not lead_value:
                 return
+
+            if skip_value_check:
+                return
+
             validate_func = getattr(lead_attribute, lead_attribute.LEADATTR_WITH_VALUE_VALIDATION.get(lead_attribute.attribute_type))
             validate_func(lead_value)
 
