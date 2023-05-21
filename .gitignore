@@ -17,4 +17,14 @@ coverage.xml
 *.cover
 .hypothesis/
 
+# Temp files
 tmp/
+temp/
+
+# Database
+db.sqlite3
+postgres-data/
+postgres_data/
+
+# Media
+media/
